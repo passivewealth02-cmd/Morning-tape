@@ -1,0 +1,180 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Editorial Newspaper Theme - Cream Paper */
+  --background: #F4EDE0;
+  --foreground: #1A1612;
+  --card: #EDE5D8;
+  --card-foreground: #1A1612;
+  --popover: #F4EDE0;
+  --popover-foreground: #1A1612;
+  --primary: #1A1612;
+  --primary-foreground: #F4EDE0;
+  --secondary: #E8DFD0;
+  --secondary-foreground: #1A1612;
+  --muted: #E8DFD0;
+  --muted-foreground: #5C5549;
+  --accent: #8B0000;
+  --accent-foreground: #F4EDE0;
+  --destructive: #8B0000;
+  --destructive-foreground: #F4EDE0;
+  --border: #C9BFAB;
+  --input: #C9BFAB;
+  --ring: #8B0000;
+  --chart-1: #8B0000;
+  --chart-2: #1A1612;
+  --chart-3: #5C5549;
+  --chart-4: #8B4513;
+  --chart-5: #2F4F4F;
+  --radius: 0.25rem;
+  
+  /* Rule lines */
+  --rule-light: rgba(26, 22, 18, 0.25);
+  --rule-dark: #1A1612;
+}
+
+@theme inline {
+  --font-sans: 'Crimson Pro', 'Georgia', serif;
+  --font-serif: 'Fraunces', 'Georgia', serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Paper grain texture overlay */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.paper-texture > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Drop cap styling */
+.drop-cap::first-letter {
+  float: left;
+  font-family: var(--font-serif);
+  font-size: 4.5rem;
+  line-height: 0.8;
+  padding-right: 0.5rem;
+  padding-top: 0.25rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Rule lines */
+.rule-single {
+  border-top: 1px solid var(--rule-light);
+}
+
+.rule-double {
+  border-top: 1px solid var(--rule-dark);
+  position: relative;
+}
+
+.rule-double::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--rule-dark);
+}
+
+/* Section marker styling */
+.section-marker {
+  font-family: var(--font-serif);
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Masthead styling */
+.masthead {
+  font-family: var(--font-serif);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Star ratings */
+.star-rating {
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+/* Sparkline stroke */
+.sparkline-up {
+  stroke: #228B22;
+}
+
+.sparkline-down {
+  stroke: var(--accent);
+}
+
+/* Ticker styling */
+.ticker {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+/* Editorial link styling */
+.editorial-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+.editorial-link:hover {
+  text-decoration-thickness: 2px;
+}
