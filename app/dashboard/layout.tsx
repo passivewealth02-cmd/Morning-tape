@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
+import { Sidebar } from '@/components/layout/sidebar'
 
 export default async function DashboardLayout({
   children,
@@ -12,9 +13,16 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  if (!session.subscription) {
-    redirect('/subscribe')
+  if (!session.user.organization_id) {
+    redirect('/onboarding')
   }
 
-  return <>{children}</>
+  return (
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        {children}
+      </main>
+    </div>
+  )
 }

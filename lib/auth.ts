@@ -1,14 +1,14 @@
 import 'server-only'
 import { cookies } from 'next/headers'
-import { sql, type User, type Subscription } from './db'
+import { sql, type User } from './db'
 import { randomBytes } from 'crypto'
 
-const SESSION_COOKIE_NAME = 'morning_tape_session'
+const SESSION_COOKIE_NAME = 'maintena_session'
 const SESSION_DURATION_DAYS = 30
 
 export async function createMagicLinkToken(email: string): Promise<string> {
   const token = randomBytes(32).toString('hex')
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
 
   await sql`
     INSERT INTO magic_link_tokens (email, token, expires_at)
@@ -30,30 +30,24 @@ export async function verifyMagicLinkToken(token: string): Promise<string | null
     return null
   }
 
-  // Mark token as used
   await sql`
-    UPDATE magic_link_tokens
-    SET used = TRUE
-    WHERE token = ${token}
+    UPDATE magic_link_tokens SET used = TRUE WHERE token = ${token}
   `
 
   return result[0].email
 }
 
 export async function getOrCreateUser(email: string): Promise<User> {
-  // Try to find existing user
-  const existingUser = await sql`
-    SELECT * FROM users WHERE email = ${email}
-  `
+  const existing = await sql`SELECT * FROM users WHERE email = ${email}`
 
-  if (existingUser.length > 0) {
-    return existingUser[0] as User
+  if (existing.length > 0) {
+    return existing[0] as User
   }
 
-  // Create new user
+  // Create user — they'll set up their org after first login
   const newUser = await sql`
-    INSERT INTO users (email)
-    VALUES (${email})
+    INSERT INTO users (email, role)
+    VALUES (${email}, 'admin')
     RETURNING *
   `
 
@@ -69,7 +63,6 @@ export async function createSession(userId: string): Promise<string> {
     VALUES (${userId}, ${token}, ${expiresAt.toISOString()})
   `
 
-  // Set HTTP-only cookie
   const cookieStore = await cookies()
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
@@ -82,47 +75,26 @@ export async function createSession(userId: string): Promise<string> {
   return token
 }
 
-export async function getSession(): Promise<{ user: User; subscription: Subscription | null } | null> {
+export async function getSession(): Promise<{ user: User } | null> {
   const cookieStore = await cookies()
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
-  if (!sessionToken) {
-    return null
-  }
+  if (!sessionToken) return null
 
   const sessionResult = await sql`
-    SELECT s.user_id, s.expires_at
-    FROM sessions s
-    WHERE s.token = ${sessionToken}
-      AND s.expires_at > NOW()
+    SELECT s.user_id FROM sessions s
+    WHERE s.token = ${sessionToken} AND s.expires_at > NOW()
   `
 
-  if (sessionResult.length === 0) {
-    return null
-  }
-
-  const userId = sessionResult[0].user_id
+  if (sessionResult.length === 0) return null
 
   const userResult = await sql`
-    SELECT * FROM users WHERE id = ${userId}
+    SELECT * FROM users WHERE id = ${sessionResult[0].user_id}
   `
 
-  if (userResult.length === 0) {
-    return null
-  }
+  if (userResult.length === 0) return null
 
-  const subscriptionResult = await sql`
-    SELECT * FROM subscriptions
-    WHERE user_id = ${userId}
-      AND status = 'active'
-    ORDER BY created_at DESC
-    LIMIT 1
-  `
-
-  return {
-    user: userResult[0] as User,
-    subscription: subscriptionResult.length > 0 ? (subscriptionResult[0] as Subscription) : null,
-  }
+  return { user: userResult[0] as User }
 }
 
 export async function destroySession(): Promise<void> {
@@ -130,10 +102,44 @@ export async function destroySession(): Promise<void> {
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
   if (sessionToken) {
-    await sql`
-      DELETE FROM sessions WHERE token = ${sessionToken}
-    `
+    await sql`DELETE FROM sessions WHERE token = ${sessionToken}`
   }
 
   cookieStore.delete(SESSION_COOKIE_NAME)
+}
+
+export async function requireSession() {
+  const session = await getSession()
+  if (!session) {
+    throw new Error('Unauthorized')
+  }
+  return session
+}
+
+export async function logActivity({
+  organizationId,
+  ticketId,
+  userId,
+  actionType,
+  description,
+  metadata,
+}: {
+  organizationId: string
+  ticketId?: string
+  userId?: string
+  actionType: string
+  description: string
+  metadata?: Record<string, unknown>
+}) {
+  await sql`
+    INSERT INTO activity_logs (organization_id, ticket_id, user_id, action_type, description, metadata)
+    VALUES (
+      ${organizationId},
+      ${ticketId ?? null},
+      ${userId ?? null},
+      ${actionType},
+      ${description},
+      ${metadata ? JSON.stringify(metadata) : null}
+    )
+  `
 }

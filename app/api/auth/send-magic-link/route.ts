@@ -4,7 +4,7 @@ import { sendMagicLinkEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, plan } = await request.json()
+    const { email } = await request.json()
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json(

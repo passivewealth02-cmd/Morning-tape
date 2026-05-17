@@ -1,53 +1,28 @@
 import type { Metadata, Viewport } from 'next'
-import { Fraunces, Crimson_Pro, JetBrains_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const fraunces = Fraunces({ 
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-fraunces',
+  variable: '--font-inter',
   display: 'swap',
 })
 
-const crimsonPro = Crimson_Pro({ 
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
-  variable: '--font-crimson-pro',
-  display: 'swap',
-})
-
-const jetbrainsMono = JetBrains_Mono({ 
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
+  variable: '--font-mono',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'The Morning Tape | Daily AI Market Briefing',
-  description: 'Your daily AI-generated market intelligence briefing. Concise analysis of market movements, sector performance, and economic events delivered fresh each trading day.',
-  generator: 'v0.app',
-  keywords: ['market briefing', 'AI analysis', 'stock market', 'financial news', 'trading intelligence'],
-  authors: [{ name: 'The Morning Tape' }],
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
+  title: 'Maintena | AI Maintenance Coordination',
+  description: 'The AI operations layer for property maintenance. Stop losing maintenance requests and chasing vendors manually.',
+  keywords: ['property management', 'maintenance coordination', 'vendor management', 'AI property management'],
+  authors: [{ name: 'Maintena' }],
 }
 
 export const viewport: Viewport = {
-  themeColor: '#F4EDE0',
   width: 'device-width',
   initialScale: 1,
 }
@@ -58,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${crimsonPro.variable} ${jetbrainsMono.variable} bg-background`}>
-      <body className="font-sans antialiased min-h-screen">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="antialiased min-h-screen bg-background text-foreground">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

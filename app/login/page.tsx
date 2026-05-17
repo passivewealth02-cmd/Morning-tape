@@ -2,62 +2,101 @@
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Spinner } from '@/components/ui/spinner'
 
 function LoginForm() {
-  const searchParams = useSearchParams()
-  const plan = searchParams.get('plan')
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState('idle')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus('loading')
     try {
       const response = await fetch('/api/auth/send-magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, plan }),
+        body: JSON.stringify({ email }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Failed to send magic link')
       setStatus('success')
     } catch (error) {
       setStatus('error')
-      setErrorMessage(error.message || 'An error occurred')
+      setErrorMessage(error instanceof Error ? error.message : 'An error occurred')
     }
   }
 
   if (status === 'success') {
     return (
-      <div className="paper-texture min-h-screen flex items-center justify-center px-6">
+      <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50">
         <div className="max-w-md w-full text-center">
-          <h1 className="font-serif text-3xl font-semibold mb-4">Check Your Inbox</h1>
-          <p className="text-muted-foreground mb-6">We sent a sign-in link to {email}.</p>
-          <button onClick={() => setStatus('idle')} className="editorial-link">Try again</button>
+          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Check your inbox</h1>
+          <p className="text-gray-500 mb-6">We sent a sign-in link to <strong>{email}</strong></p>
+          <button onClick={() => setStatus('idle')} className="text-sm text-indigo-600 hover:underline">
+            Try a different email
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="paper-texture min-h-screen flex items-center justify-center px-6">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center px-6 bg-gray-50">
+      <div className="max-w-sm w-full">
         <div className="text-center mb-8">
-          <Link href="/"><h1 className="masthead text-2xl font-serif font-semibold tracking-wider mb-2">The Morning Tape</h1></Link>
-          <p className="section-marker">— Subscriber Access —</p>
+          <Link href="/" className="text-xl font-semibold text-gray-900">Maintena</Link>
+          <p className="text-gray-500 text-sm mt-2">Sign in to your account</p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="reader@example.com" required disabled={status === 'loading'} />
-          {status === 'error' && <p className="text-sm text-accent">{errorMessage}</p>}
-          <Button type="submit" disabled={status === 'loading' || !email} className="w-full font-serif tracking-wide bg-foreground text-background">
-            {status === 'loading' ? 'Sending...' : 'Send Sign-In Link'}
-          </Button>
-        </form>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Email address
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                required
+                disabled={status === 'loading'}
+                className="w-full"
+              />
+            </div>
+
+            {status === 'error' && (
+              <p className="text-sm text-red-600">{errorMessage}</p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={status === 'loading' || !email}
+              className="w-full bg-gray-900 hover:bg-gray-700 text-white"
+            >
+              {status === 'loading' ? 'Sending link...' : 'Send magic link'}
+            </Button>
+          </form>
+
+          <p className="text-center text-xs text-gray-400 mt-6">
+            We&apos;ll email you a secure sign-in link. No password needed.
+          </p>
+        </div>
+
+        <p className="text-center text-sm text-gray-400 mt-6">
+          Don&apos;t have an account?{' '}
+          <Link href="/login" className="text-indigo-600 hover:underline">
+            Sign up free
+          </Link>
+        </p>
       </div>
     </div>
   )
@@ -65,7 +104,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="paper-texture min-h-screen flex items-center justify-center"><p>Loading...</p></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+      </div>
+    }>
       <LoginForm />
     </Suspense>
   )

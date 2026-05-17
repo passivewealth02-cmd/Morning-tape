@@ -1,75 +1,105 @@
 import 'server-only'
 import Anthropic from '@anthropic-ai/sdk'
-import type { BriefingContent } from './db'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-export async function generateBriefing(plan: 'trader' | 'professional'): Promise<BriefingContent> {
-  const today = new Date()
-  const dateStr = today.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-
-  const professionalSections = plan === 'professional' ? `
-  - "sectorPerformance": Array of sector data with "sector" (string), "change" (string like "+1.2%"), "trend" ("up" | "down" | "flat")
-  - "economicCalendar": Array of upcoming events with "event" (string), "time" (string), "importance" (1, 2, or 3 for star rating)
-  ` : ''
-
-  const prompt = `You are a financial analyst writing the daily market briefing for The Morning Tape, a premium editorial-style market intelligence publication. Today's date is ${dateStr}.
-
-Generate a market briefing in JSON format. Write in a professional, authoritative tone befitting a publication like the Financial Times or a hedge fund morning note. Be concise but insightful.
-
-The JSON structure must be exactly:
-{
-  "marketOverview": "A 2-3 paragraph overview of current market conditions, overnight developments, and the trading day ahead. Write with authority and insight.",
-  "topMovers": {
-    "gainers": [
-      {
-        "ticker": "SYMBOL",
-        "name": "Company Name",
-        "change": "+X.X%",
-        "price": 123.45,
-        "sparklineData": [array of 7 numbers representing last 7 days normalized price movement, values between 0-100]
-      }
-    ],
-    "losers": [same structure as gainers]
-  },
-  ${professionalSections}
-  "aiCommentary": "A thoughtful 2-3 paragraph analysis that cuts through market noise to identify the key narrative or theme of the day. This should feel like insight from a seasoned market strategist."
+export type TicketAnalysis = {
+  category: string
+  urgency: 'low' | 'medium' | 'high' | 'emergency'
+  vendor_type: string
+  summary: string
+  escalation_risk: boolean
+  escalation_reason: string | null
 }
 
-Include 3-4 gainers and 3-4 losers with realistic current market data. ${plan === 'professional' ? 'Include 6-8 sectors and 4-6 economic calendar events.' : ''}
+export async function analyzeMaintenanceTicket(
+  title: string,
+  description: string
+): Promise<TicketAnalysis> {
+  const prompt = `You are an AI assistant for a property maintenance coordination platform. Analyze the following maintenance request and return structured data.
 
-The sparklineData should be 7 numbers showing realistic price movement patterns - upward trending for gainers, downward for losers.
+Title: ${title}
+Description: ${description}
 
-Return ONLY valid JSON, no additional text or markdown.`
+Return a JSON object with exactly these fields:
+{
+  "category": "one of: plumbing, electrical, hvac, appliance, structural, pest_control, landscaping, cleaning, security, general",
+  "urgency": "one of: low, medium, high, emergency",
+  "vendor_type": "specific trade needed, e.g. 'plumber', 'electrician', 'hvac_technician', 'handyman', etc.",
+  "summary": "concise 1-2 sentence operational summary for the property manager",
+  "escalation_risk": true or false,
+  "escalation_reason": "string if escalation_risk is true, null otherwise"
+}
+
+Urgency guidelines:
+- emergency: immediate safety risk, flooding, no heat in winter, gas leak
+- high: significant impact on livability, needs same-day response
+- medium: important but not urgent, should be resolved within 48-72 hours
+- low: minor issue, can be scheduled within a week
+
+Escalation risk is true if: the request contains angry language, mentions repeated issues, threatens legal action, or describes a health/safety hazard.
+
+Return ONLY valid JSON, no markdown.`
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2048,
-    messages: [
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 512,
+    messages: [{ role: 'user', content: prompt }],
   })
 
   const content = message.content[0]
-  if (content.type !== 'text') {
-    throw new Error('Unexpected response type from Anthropic')
-  }
+  if (content.type !== 'text') throw new Error('Unexpected response type')
 
   try {
-    const briefing = JSON.parse(content.text) as BriefingContent
-    return briefing
-  } catch (error) {
-    console.error('Failed to parse briefing JSON:', content.text)
-    throw new Error('Failed to parse briefing response')
+    return JSON.parse(content.text) as TicketAnalysis
+  } catch {
+    // Fallback if parsing fails
+    return {
+      category: 'general',
+      urgency: 'medium',
+      vendor_type: 'handyman',
+      summary: `${title}: ${description.slice(0, 100)}`,
+      escalation_risk: false,
+      escalation_reason: null,
+    }
+  }
+}
+
+export async function recommendVendors(
+  ticketAnalysis: TicketAnalysis,
+  vendors: Array<{ id: string; name: string; trade_type: string; rating: number; availability: string }>
+): Promise<string[]> {
+  if (vendors.length === 0) return []
+
+  const vendorList = vendors
+    .map(v => `ID: ${v.id}, Name: ${v.name}, Trade: ${v.trade_type}, Rating: ${v.rating}, Availability: ${v.availability}`)
+    .join('\n')
+
+  const prompt = `A maintenance ticket needs a vendor. Here are the details:
+Category: ${ticketAnalysis.category}
+Required vendor type: ${ticketAnalysis.vendor_type}
+Urgency: ${ticketAnalysis.urgency}
+
+Available vendors:
+${vendorList}
+
+Return a JSON array of vendor IDs ordered by best match (best first, max 3). Consider trade type match, availability, and rating.
+Return ONLY a JSON array like: ["id1", "id2"] — no markdown.`
+
+  const message = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 256,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const content = message.content[0]
+  if (content.type !== 'text') return []
+
+  try {
+    return JSON.parse(content.text) as string[]
+  } catch {
+    return vendors.slice(0, 3).map(v => v.id)
   }
 }
