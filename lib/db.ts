@@ -23,11 +23,14 @@ if (isLocal) {
 
 export { sql }
 
+export type OrganizationPlan = 'trial' | 'starter' | 'growth' | 'pro'
+
 export type Organization = {
   id: string
   name: string
   slug: string
   inbox_token: string | null
+  plan: OrganizationPlan
   created_at: string
   updated_at: string
 }

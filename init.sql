@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS organizations (
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
   inbox_token TEXT UNIQUE,
+  plan TEXT NOT NULL DEFAULT 'trial' CHECK (plan IN ('trial', 'starter', 'growth', 'pro')),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

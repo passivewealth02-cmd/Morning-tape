@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth'
 import { sql, type Organization } from '@/lib/db'
 import { headers } from 'next/headers'
 import { InboxWebhookCard } from '@/components/settings/inbox-webhook-card'
+import { PlanCard } from '@/components/settings/plan-card'
 
 export default async function SettingsPage() {
   const session = await getSession()
@@ -66,6 +67,12 @@ export default async function SettingsPage() {
             </div>
           </dl>
         </section>
+      )}
+
+      {org && (
+        <div className="mb-4">
+          <PlanCard currentPlan={org.plan ?? 'trial'} canManage={session.user.role === 'admin'} />
+        </div>
       )}
 
       {inboundUrl && <InboxWebhookCard url={inboundUrl} />}
