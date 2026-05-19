@@ -1,6 +1,27 @@
 import { neon } from '@neondatabase/serverless'
+import { Pool } from 'pg'
 
-export const sql = neon(process.env.DATABASE_URL!)
+const dbUrl = process.env.DATABASE_URL!
+const isLocal = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')
+
+let sql: ReturnType<typeof neon>
+
+if (isLocal) {
+  const pool = new Pool({ connectionString: dbUrl })
+  // Match the neon tagged-template API
+  sql = ((strings: TemplateStringsArray, ...values: unknown[]) => {
+    let text = ''
+    strings.forEach((s, i) => {
+      text += s
+      if (i < values.length) text += `$${i + 1}`
+    })
+    return pool.query(text, values as unknown[]).then(r => r.rows) as ReturnType<ReturnType<typeof neon>>
+  }) as ReturnType<typeof neon>
+} else {
+  sql = neon(dbUrl)
+}
+
+export { sql }
 
 export type Organization = {
   id: string
