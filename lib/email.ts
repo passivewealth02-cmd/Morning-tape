@@ -9,7 +9,7 @@ export async function sendMagicLinkEmail(email: string, token: string): Promise<
 
   try {
     const { error } = await resend.emails.send({
-      from: 'Maintena <noreply@maintena.app>',
+      from: 'Maintena <onboarding@resend.dev>',
       to: email,
       subject: 'Sign in to Maintena',
       html: `
@@ -74,7 +74,7 @@ export async function sendVendorAssignmentEmail(
 
   try {
     const { error } = await resend.emails.send({
-      from: 'Maintena <noreply@maintena.app>',
+      from: 'Maintena <onboarding@resend.dev>',
       to: vendorEmail,
       subject: `New job assigned: ${ticketTitle}`,
       html: `
