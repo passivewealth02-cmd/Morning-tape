@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
       description,
       urgency = 'medium',
       property_id = null,
-      unit_id = null,
+      unit_id: unitIdInput = null,
+      unit_number = null,
       tenant_name = null,
       tenant_email = null,
       tenant_phone = null,
@@ -74,13 +75,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and description are required' }, { status: 400 })
     }
 
+    let resolvedUnitId: string | null = unitIdInput
+    if (!resolvedUnitId && unit_number && property_id) {
+      const unitMatch = (await sql`
+        SELECT id FROM units
+        WHERE property_id = ${property_id}
+          AND LOWER(unit_number) = LOWER(${unit_number})
+        LIMIT 1
+      `) as unknown as Array<{ id: string }>
+      if (unitMatch.length > 0) resolvedUnitId = unitMatch[0].id
+    }
+
     const ticket = await createTicketWithAI({
       organization_id: user.organization_id,
       title,
-      description,
+      description: unit_number && !resolvedUnitId
+        ? `${description}\n\n(Unit: ${unit_number})`
+        : description,
       urgency,
       property_id,
-      unit_id,
+      unit_id: resolvedUnitId,
       tenant_name,
       tenant_email,
       tenant_phone,

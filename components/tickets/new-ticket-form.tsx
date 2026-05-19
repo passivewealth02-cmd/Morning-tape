@@ -27,7 +27,7 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
     description: '',
     urgency: 'medium',
     property_id: '',
-    unit_id: '',
+    unit_number: '',
     tenant_name: '',
     tenant_email: '',
     tenant_phone: '',
@@ -49,7 +49,7 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
         body: JSON.stringify({
           ...form,
           property_id: form.property_id || null,
-          unit_id: form.unit_id || null,
+          unit_number: form.unit_number || null,
           tenant_name: form.tenant_name || null,
           tenant_email: form.tenant_email || null,
           tenant_phone: form.tenant_phone || null,
@@ -141,8 +141,8 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Unit number</label>
           <Input
-            value={form.unit_id}
-            onChange={e => set('unit_id', e.target.value)}
+            value={form.unit_number}
+            onChange={e => set('unit_number', e.target.value)}
             placeholder="e.g. 4B"
             disabled={status === 'loading'}
           />
