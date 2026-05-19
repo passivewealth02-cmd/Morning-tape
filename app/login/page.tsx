@@ -1,14 +1,24 @@
 'use client'
 
 import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
+const ERROR_MESSAGES: Record<string, string> = {
+  missing_token: 'Sign-in link is missing its token. Request a new one.',
+  invalid_token: 'This sign-in link has expired or already been used. Request a new one.',
+}
+
 function LoginForm() {
+  const searchParams = useSearchParams()
+  const linkError = searchParams.get('error')
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [errorMessage, setErrorMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState(
+    linkError && ERROR_MESSAGES[linkError] ? ERROR_MESSAGES[linkError] : ''
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,7 +83,7 @@ function LoginForm() {
               />
             </div>
 
-            {status === 'error' && (
+            {(status === 'error' || (status === 'idle' && errorMessage)) && (
               <p className="text-sm text-red-600">{errorMessage}</p>
             )}
 
