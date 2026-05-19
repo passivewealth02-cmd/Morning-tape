@@ -8,11 +8,14 @@ export default function Home() {
       <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <span className="text-lg font-semibold tracking-tight text-gray-900">Maintena</span>
-          <div className="flex items-center gap-6">
-            <Link href="#features" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Features</Link>
-            <Link href="#pricing" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
-            <Link href="/login" className="text-sm bg-gray-900 text-white px-4 py-1.5 rounded-md hover:bg-gray-700 transition-colors">
+          <div className="flex items-center gap-5">
+            <Link href="#features" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">Features</Link>
+            <Link href="#pricing" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
+            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               Sign in
+            </Link>
+            <Link href="/signup" className="text-sm bg-gray-900 text-white px-4 py-1.5 rounded-md hover:bg-gray-700 transition-colors">
+              Sign up
             </Link>
           </div>
         </div>
@@ -36,7 +39,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/login"
+              href="/signup"
               className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
             >
               Start for free
@@ -218,7 +221,7 @@ export default function Home() {
                   ))}
                 </ul>
                 <Link
-                  href="/login"
+                  href="/signup"
                   className={`block text-center py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     plan.highlighted
                       ? 'bg-indigo-600 text-white hover:bg-indigo-700'
@@ -243,7 +246,7 @@ export default function Home() {
             Join property managers who have cut response times in half.
           </p>
           <Link
-            href="/login"
+            href="/signup"
             className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
           >
             Get started free
