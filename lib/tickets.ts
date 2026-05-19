@@ -92,21 +92,38 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
 
 async function autoAssignVendor(ticket: MaintenanceTicket): Promise<void> {
   const vendorType = ticket.ai_vendor_type
-  if (!vendorType) return
+  const category = ticket.ai_category
+  if (!vendorType && !category) return
 
-  const vendors = (await sql`
+  const typeLike = vendorType ? `%${vendorType}%` : null
+  const categoryLike = category ? `%${category}%` : null
+
+  let vendors = (await sql`
     SELECT * FROM vendors
     WHERE organization_id = ${ticket.organization_id}
       AND availability != 'unavailable'
       AND (
-        LOWER(trade_type) = LOWER(${vendorType})
-        OR LOWER(trade_type) LIKE LOWER(${'%' + vendorType + '%'})
+        (${typeLike}::text IS NOT NULL AND LOWER(trade_type) LIKE LOWER(${typeLike}))
+        OR (${categoryLike}::text IS NOT NULL AND LOWER(trade_type) LIKE LOWER(${categoryLike}))
       )
     ORDER BY
       CASE availability WHEN 'available' THEN 0 WHEN 'busy' THEN 1 ELSE 2 END,
       rating DESC
     LIMIT 10
   `) as unknown as Vendor[]
+
+  // Fall back to any available vendor in the org if no trade match
+  if (vendors.length === 0) {
+    vendors = (await sql`
+      SELECT * FROM vendors
+      WHERE organization_id = ${ticket.organization_id}
+        AND availability != 'unavailable'
+      ORDER BY
+        CASE availability WHEN 'available' THEN 0 WHEN 'busy' THEN 1 ELSE 2 END,
+        rating DESC
+      LIMIT 10
+    `) as unknown as Vendor[]
+  }
 
   if (vendors.length === 0) return
 

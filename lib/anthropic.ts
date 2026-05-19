@@ -5,6 +5,15 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+function extractJson(text: string): string {
+  const trimmed = text.trim()
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  if (fenced) return fenced[1].trim()
+  const firstBrace = trimmed.search(/[{[]/)
+  if (firstBrace > 0) return trimmed.slice(firstBrace)
+  return trimmed
+}
+
 export type TicketAnalysis = {
   category: string
   urgency: 'low' | 'medium' | 'high' | 'emergency'
@@ -53,9 +62,9 @@ Return ONLY valid JSON, no markdown.`
   if (content.type !== 'text') throw new Error('Unexpected response type')
 
   try {
-    return JSON.parse(content.text) as TicketAnalysis
-  } catch {
-    // Fallback if parsing fails
+    return JSON.parse(extractJson(content.text)) as TicketAnalysis
+  } catch (err) {
+    console.error('analyzeMaintenanceTicket JSON parse failed. Raw text:', content.text, err)
     return {
       category: 'general',
       urgency: 'medium',
@@ -98,8 +107,9 @@ Return ONLY a JSON array like: ["id1", "id2"] — no markdown.`
   if (content.type !== 'text') return []
 
   try {
-    return JSON.parse(content.text) as string[]
-  } catch {
+    return JSON.parse(extractJson(content.text)) as string[]
+  } catch (err) {
+    console.error('recommendVendors JSON parse failed. Raw text:', content.text, err)
     return vendors.slice(0, 3).map(v => v.id)
   }
 }
@@ -149,8 +159,9 @@ Return ONLY valid JSON, no markdown.`
   if (content.type !== 'text') throw new Error('Unexpected response type')
 
   try {
-    return JSON.parse(content.text) as InboundEmailExtraction
-  } catch {
+    return JSON.parse(extractJson(content.text)) as InboundEmailExtraction
+  } catch (err) {
+    console.error('extractTicketFromEmail JSON parse failed. Raw text:', content.text, err)
     return {
       title: subject.slice(0, 80) || 'Maintenance request',
       description: body.slice(0, 1000),
