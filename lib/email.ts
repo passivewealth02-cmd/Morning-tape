@@ -3,9 +3,9 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-export async function sendMagicLinkEmail(email: string, token: string): Promise<boolean> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const magicLink = `${baseUrl}/verify?token=${token}`
+export async function sendMagicLinkEmail(email: string, token: string, baseUrl?: string): Promise<boolean> {
+  const resolvedBase = baseUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const magicLink = `${resolvedBase}/verify?token=${token}`
 
   try {
     const { error } = await resend.emails.send({

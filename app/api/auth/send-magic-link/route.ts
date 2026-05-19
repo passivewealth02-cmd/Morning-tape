@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
     // Create magic link token
     const token = await createMagicLinkToken(email.toLowerCase())
 
+    // Derive base URL from request so magic links work on any deployment
+    const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`
+
     // Send email
-    const sent = await sendMagicLinkEmail(email.toLowerCase(), token)
+    const sent = await sendMagicLinkEmail(email.toLowerCase(), token, baseUrl)
 
     if (!sent) {
       return NextResponse.json(
