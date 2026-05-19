@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { sql } from '@/lib/db'
+import { sql, type Organization } from '@/lib/db'
 import { createTicketWithAI } from '@/lib/tickets'
+import { checkResourceLimit, getEffectivePlan, getUsage } from '@/lib/plans'
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,6 +74,25 @@ export async function POST(request: NextRequest) {
 
     if (!title || !description) {
       return NextResponse.json({ error: 'Title and description are required' }, { status: 400 })
+    }
+
+    const orgRows = (await sql`
+      SELECT * FROM organizations WHERE id = ${user.organization_id}
+    `) as unknown as Organization[]
+    if (orgRows.length === 0) {
+      return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
+    }
+    const usage = await getUsage(user.organization_id)
+    const check = checkResourceLimit(getEffectivePlan(orgRows[0]), 'tickets_per_month', usage.tickets_this_month)
+    if (!check.allowed) {
+      return NextResponse.json(
+        {
+          error: `You've hit your monthly ticket limit (${check.current}/${check.limit}). Upgrade to ${check.upgrade_to ?? 'a higher plan'} to keep creating tickets.`,
+          limit_exceeded: true,
+          upgrade_to: check.upgrade_to,
+        },
+        { status: 402 }
+      )
     }
 
     let resolvedUnitId: string | null = unitIdInput

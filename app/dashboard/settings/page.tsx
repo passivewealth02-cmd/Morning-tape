@@ -71,7 +71,11 @@ export default async function SettingsPage() {
 
       {org && (
         <div className="mb-4">
-          <PlanCard currentPlan={org.plan ?? 'trial'} canManage={session.user.role === 'admin'} />
+          <PlanCard
+            currentPlan={org.plan ?? 'trial'}
+            canManage={session.user.role === 'admin'}
+            hasSubscription={Boolean(org.stripe_subscription_id)}
+          />
         </div>
       )}
 

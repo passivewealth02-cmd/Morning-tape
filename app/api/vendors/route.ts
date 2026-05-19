@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { sql } from '@/lib/db'
+import { sql, type Organization } from '@/lib/db'
+import { checkResourceLimit, getEffectivePlan, getUsage } from '@/lib/plans'
 
 export async function GET(_request: NextRequest) {
   try {
@@ -51,6 +52,22 @@ export async function POST(request: NextRequest) {
 
     if (!name || !trade_type) {
       return NextResponse.json({ error: 'Name and trade type are required' }, { status: 400 })
+    }
+
+    const orgRows = (await sql`
+      SELECT * FROM organizations WHERE id = ${user.organization_id}
+    `) as unknown as Organization[]
+    const usage = await getUsage(user.organization_id)
+    const check = checkResourceLimit(getEffectivePlan(orgRows[0]), 'vendors', usage.vendors)
+    if (!check.allowed) {
+      return NextResponse.json(
+        {
+          error: `You've reached your vendor limit (${check.current}/${check.limit}). Upgrade to ${check.upgrade_to ?? 'a higher plan'} to add more.`,
+          limit_exceeded: true,
+          upgrade_to: check.upgrade_to,
+        },
+        { status: 402 }
+      )
     }
 
     const inserted = await sql`

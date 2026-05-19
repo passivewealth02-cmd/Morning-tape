@@ -46,12 +46,14 @@ const PLANS: Plan[] = [
 export function PlanCard({
   currentPlan,
   canManage,
+  hasSubscription,
 }: {
   currentPlan: OrganizationPlan
   canManage: boolean
+  hasSubscription: boolean
 }) {
   const router = useRouter()
-  const [pending, setPending] = useState<OrganizationPlan | null>(null)
+  const [pending, setPending] = useState<OrganizationPlan | 'portal' | null>(null)
   const [error, setError] = useState('')
 
   const handleSelect = async (plan: OrganizationPlan) => {
@@ -59,17 +61,34 @@ export function PlanCard({
     setPending(plan)
     setError('')
     try {
-      const res = await fetch('/api/organization/plan', {
+      const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to update plan')
+      if (!res.ok) throw new Error(data.error || 'Failed to start checkout')
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
+      setPending(null)
+    }
+  }
+
+  const handleManage = async () => {
+    setPending('portal')
+    setError('')
+    try {
+      const res = await fetch('/api/billing/portal', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not open billing portal')
+      if (data.url) window.location.href = data.url
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
       setPending(null)
     }
   }
@@ -144,7 +163,13 @@ export function PlanCard({
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                {isCurrent ? 'Current plan' : isPending ? 'Switching...' : canManage ? 'Switch to this' : 'Admin only'}
+                {isCurrent
+                  ? 'Current plan'
+                  : isPending
+                    ? 'Opening checkout...'
+                    : canManage
+                      ? hasSubscription ? 'Switch to this' : 'Subscribe'
+                      : 'Admin only'}
               </button>
             </div>
           )
@@ -155,6 +180,16 @@ export function PlanCard({
         <p className="text-xs text-gray-500 mt-3">
           Only organization admins can change the plan.
         </p>
+      )}
+
+      {canManage && hasSubscription && (
+        <button
+          onClick={handleManage}
+          disabled={pending !== null}
+          className="mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+        >
+          {pending === 'portal' ? 'Opening...' : 'Manage billing & invoices'}
+        </button>
       )}
     </section>
   )

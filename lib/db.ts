@@ -24,6 +24,7 @@ if (isLocal) {
 export { sql }
 
 export type OrganizationPlan = 'trial' | 'starter' | 'growth' | 'pro'
+export type PlanStatus = 'active' | 'past_due' | 'canceled' | 'trialing' | 'incomplete'
 
 export type Organization = {
   id: string
@@ -31,6 +32,11 @@ export type Organization = {
   slug: string
   inbox_token: string | null
   plan: OrganizationPlan
+  plan_status: PlanStatus
+  trial_ends_at: string | null
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+  stripe_price_id: string | null
   created_at: string
   updated_at: string
 }
