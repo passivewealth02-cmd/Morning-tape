@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
 import { getSession } from '@/lib/auth'
 import { sql } from '@/lib/db'
 
@@ -28,10 +29,11 @@ export async function POST(request: NextRequest) {
     const baseSlug = slugify(organization_name)
     const suffix = Math.random().toString(36).slice(2, 6)
     const slug = `${baseSlug}-${suffix}`
+    const inboxToken = randomBytes(16).toString('hex')
 
     const org = await sql`
-      INSERT INTO organizations (name, slug)
-      VALUES (${organization_name.trim()}, ${slug})
+      INSERT INTO organizations (name, slug, inbox_token)
+      VALUES (${organization_name.trim()}, ${slug}, ${inboxToken})
       RETURNING *
     `
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, logActivity } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { sql } from '@/lib/db'
-import { analyzeMaintenanceTicket } from '@/lib/anthropic'
+import { createTicketWithAI } from '@/lib/tickets'
 
 export async function GET(request: NextRequest) {
   try {
@@ -74,48 +74,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and description are required' }, { status: 400 })
     }
 
-    const inserted = await sql`
-      INSERT INTO maintenance_tickets (
-        organization_id, property_id, unit_id, title, description, urgency,
-        status, tenant_name, tenant_email, tenant_phone, created_by
-      )
-      VALUES (
-        ${user.organization_id}, ${property_id}, ${unit_id}, ${title}, ${description}, ${urgency},
-        'new', ${tenant_name}, ${tenant_email}, ${tenant_phone}, ${user.id}
-      )
-      RETURNING *
-    `
-
-    const ticket = inserted[0]
-
-    try {
-      const analysis = await analyzeMaintenanceTicket(title, description)
-      await sql`
-        UPDATE maintenance_tickets
-        SET
-          ai_category = ${analysis.category},
-          ai_vendor_type = ${analysis.vendor_type},
-          ai_summary = ${analysis.summary},
-          ai_escalation_risk = ${analysis.escalation_risk},
-          urgency = ${analysis.urgency}
-        WHERE id = ${ticket.id}
-      `
-      ticket.ai_category = analysis.category
-      ticket.ai_vendor_type = analysis.vendor_type
-      ticket.ai_summary = analysis.summary
-      ticket.ai_escalation_risk = analysis.escalation_risk
-      ticket.urgency = analysis.urgency
-    } catch (aiError) {
-      console.error('AI analysis failed:', aiError)
-    }
-
-    await logActivity({
-      organizationId: user.organization_id,
-      ticketId: ticket.id,
-      userId: user.id,
-      actionType: 'ticket_created',
-      description: `Ticket created: ${title}`,
-      metadata: { urgency: ticket.urgency },
+    const ticket = await createTicketWithAI({
+      organization_id: user.organization_id,
+      title,
+      description,
+      urgency,
+      property_id,
+      unit_id,
+      tenant_name,
+      tenant_email,
+      tenant_phone,
+      created_by: user.id,
+      source: 'manual',
     })
 
     return NextResponse.json(ticket, { status: 201 })

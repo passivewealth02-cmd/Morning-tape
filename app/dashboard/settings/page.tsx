@@ -1,5 +1,7 @@
 import { getSession } from '@/lib/auth'
 import { sql, type Organization } from '@/lib/db'
+import { headers } from 'next/headers'
+import { InboxWebhookCard } from '@/components/settings/inbox-webhook-card'
 
 export default async function SettingsPage() {
   const session = await getSession()
@@ -9,6 +11,13 @@ export default async function SettingsPage() {
     SELECT * FROM organizations WHERE id = ${session.user.organization_id}
   `) as unknown as Organization[]
   const org = orgRows[0]
+
+  const hdrs = await headers()
+  const host = hdrs.get('host') ?? 'morning-tape.vercel.app'
+  const protocol = host.includes('localhost') ? 'http' : 'https'
+  const inboundUrl = org?.inbox_token
+    ? `${protocol}://${host}/api/inbound/${org.inbox_token}`
+    : null
 
   return (
     <div className="p-6 max-w-2xl">
@@ -38,7 +47,7 @@ export default async function SettingsPage() {
       </section>
 
       {org && (
-        <section className="bg-white rounded-lg border border-gray-200 p-6">
+        <section className="bg-white rounded-lg border border-gray-200 p-6 mb-4">
           <h2 className="text-sm font-semibold text-gray-900 mb-4">Workspace</h2>
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
@@ -58,6 +67,8 @@ export default async function SettingsPage() {
           </dl>
         </section>
       )}
+
+      {inboundUrl && <InboxWebhookCard url={inboundUrl} />}
     </div>
   )
 }

@@ -27,6 +27,7 @@ export type Organization = {
   id: string
   name: string
   slug: string
+  inbox_token: string | null
   created_at: string
   updated_at: string
 }
