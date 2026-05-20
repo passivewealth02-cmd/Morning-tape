@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   Zap,
+  Sparkles,
 } from 'lucide-react'
 
 const nav = [
@@ -17,6 +18,7 @@ const nav = [
   { href: '/dashboard/tickets', label: 'Tickets', icon: ClipboardList },
   { href: '/dashboard/vendors', label: 'Vendors', icon: Users },
   { href: '/dashboard/properties', label: 'Properties', icon: Building2 },
+  { href: '/dashboard/settings#plan', label: 'Plan', icon: Sparkles },
 ]
 
 export function Sidebar() {
@@ -35,7 +37,8 @@ export function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {nav.map(item => {
-          const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          const href = item.href.split('#')[0]
+          const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href) && item.label !== 'Plan')
           return (
             <Link
               key={item.href}

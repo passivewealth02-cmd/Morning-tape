@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, Zap, Users, ClipboardList, Bell, BarChart3, Shield } from 'lucide-react'
+import { HeroCTA } from '@/components/home/hero-cta'
 
 export default function Home() {
   return (
@@ -34,21 +35,7 @@ export default function Home() {
             Maintena is the AI operations layer for property maintenance. Dispatch vendors, track repairs, automate updates — all in one fast, modern dashboard.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
-            >
-              Start for free
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="#features"
-              className="inline-flex items-center gap-2 bg-gray-50 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors border border-gray-200"
-            >
-              See how it works
-            </Link>
-          </div>
+          <HeroCTA />
 
           <p className="mt-6 text-sm text-gray-400">No credit card required · Setup in under 5 minutes</p>
         </div>
