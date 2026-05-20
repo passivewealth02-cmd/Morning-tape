@@ -12,7 +12,7 @@ export function HeroCTA() {
     <>
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
-          href="/signup"
+          href="/login"
           className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
         >
           Start for free
