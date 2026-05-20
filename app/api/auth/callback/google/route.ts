@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=oauth_state_mismatch`)
   }
 
-  const redirectUri = `${origin}/api/auth/callback/google`
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || origin
+  const redirectUri = `${baseUrl}/api/auth/callback/google`
 
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
