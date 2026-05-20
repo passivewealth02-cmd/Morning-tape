@@ -3,13 +3,13 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-export async function sendMagicLinkEmail(email: string, token: string): Promise<boolean> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const magicLink = `${baseUrl}/verify?token=${token}`
+export async function sendMagicLinkEmail(email: string, token: string, baseUrl?: string): Promise<boolean> {
+  const resolvedBase = baseUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const magicLink = `${resolvedBase}/verify?token=${token}`
 
   try {
     const { error } = await resend.emails.send({
-      from: 'Maintena <noreply@maintena.app>',
+      from: 'Maintena <onboarding@resend.dev>',
       to: email,
       subject: 'Sign in to Maintena',
       html: `
@@ -74,7 +74,7 @@ export async function sendVendorAssignmentEmail(
 
   try {
     const { error } = await resend.emails.send({
-      from: 'Maintena <noreply@maintena.app>',
+      from: 'Maintena <onboarding@resend.dev>',
       to: vendorEmail,
       subject: `New job assigned: ${ticketTitle}`,
       html: `

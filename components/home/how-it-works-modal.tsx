@@ -305,7 +305,7 @@ export function HowItWorksModal({ open, onClose }: { open: boolean; onClose: () 
             </button>
           ) : (
             <a
-              href="/login"
+              href="/signup"
               className="flex items-center gap-1 text-sm font-medium bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Get started <ArrowRight className="w-3 h-3" />

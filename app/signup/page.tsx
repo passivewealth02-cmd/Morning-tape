@@ -7,15 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 const ERROR_MESSAGES: Record<string, string> = {
-  missing_token: 'Sign-in link is missing its token. Request a new one.',
-  invalid_token: 'This sign-in link has expired or already been used. Request a new one.',
-  google_not_configured: 'Google sign-in is not configured yet.',
-  google_denied: 'Google sign-in was cancelled.',
-  oauth_state_mismatch: 'Sign-in session expired. Please try again.',
-  google_token_failed: 'Could not complete Google sign-in. Please try again.',
+  missing_token: 'Sign-up link is missing its token. Request a new one.',
+  invalid_token: 'This sign-up link has expired or already been used. Request a new one.',
+  google_not_configured: 'Google sign-up is not configured yet.',
+  google_denied: 'Google sign-up was cancelled.',
+  oauth_state_mismatch: 'Sign-up session expired. Please try again.',
+  google_token_failed: 'Could not complete Google sign-up. Please try again.',
   google_userinfo_failed: 'Could not retrieve your Google profile. Please try again.',
   google_no_email: 'Your Google account did not provide an email address.',
-  signin_failed: 'Sign-in failed. Please try again.',
+  signin_failed: 'Sign-up failed. Please try again.',
 }
 
 function GoogleIcon() {
@@ -29,7 +29,7 @@ function GoogleIcon() {
   )
 }
 
-function LoginForm() {
+function SignupForm() {
   const searchParams = useSearchParams()
   const linkError = searchParams.get('error')
   const [email, setEmail] = useState('')
@@ -48,7 +48,7 @@ function LoginForm() {
         body: JSON.stringify({ email }),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Failed to send magic link')
+      if (!response.ok) throw new Error(data.error || 'Failed to send sign-up link')
       setStatus('success')
     } catch (error) {
       setStatus('error')
@@ -66,7 +66,7 @@ function LoginForm() {
             </svg>
           </div>
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Check your inbox</h1>
-          <p className="text-gray-500 mb-6">We sent a sign-in link to <strong>{email}</strong></p>
+          <p className="text-gray-500 mb-6">We sent a sign-up link to <strong>{email}</strong></p>
           <button onClick={() => setStatus('idle')} className="text-sm text-indigo-600 hover:underline">
             Try a different email
           </button>
@@ -80,17 +80,17 @@ function LoginForm() {
       <div className="max-w-sm w-full">
         <div className="text-center mb-8">
           <Link href="/" className="text-xl font-semibold text-gray-900">Maintena</Link>
-          <p className="text-gray-500 text-sm mt-2">Sign in to your account</p>
+          <h1 className="text-gray-900 text-lg font-semibold mt-3">Create your account</h1>
+          <p className="text-gray-500 text-sm mt-1">Free trial — no credit card required</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm space-y-4">
-          {/* Google */}
           <a
             href="/api/auth/google"
             className="flex items-center justify-center gap-2.5 w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <GoogleIcon />
-            Continue with Google
+            Sign up with Google
           </a>
 
           <div className="flex items-center gap-3">
@@ -99,11 +99,10 @@ function LoginForm() {
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          {/* Magic link */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email address
+                Work email
               </label>
               <Input
                 id="email"
@@ -124,21 +123,21 @@ function LoginForm() {
             <Button
               type="submit"
               disabled={status === 'loading' || !email}
-              className="w-full bg-gray-900 hover:bg-gray-700 text-white"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
             >
-              {status === 'loading' ? 'Sending link...' : 'Send magic link'}
+              {status === 'loading' ? 'Sending link...' : 'Create account'}
             </Button>
           </form>
 
           <p className="text-center text-xs text-gray-400">
-            We&apos;ll email you a secure sign-in link. No password needed.
+            By signing up you agree to our terms.
           </p>
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-indigo-600 hover:underline font-medium">
-            Sign up
+          Already have an account?{' '}
+          <Link href="/login" className="text-indigo-600 hover:underline font-medium">
+            Sign in
           </Link>
         </p>
       </div>
@@ -146,14 +145,14 @@ function LoginForm() {
   )
 }
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
       </div>
     }>
-      <LoginForm />
+      <SignupForm />
     </Suspense>
   )
 }

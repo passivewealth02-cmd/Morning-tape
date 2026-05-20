@@ -37,21 +37,25 @@ export async function verifyMagicLinkToken(token: string): Promise<string | null
   return result[0].email
 }
 
-export async function getOrCreateUser(email: string): Promise<User> {
-  const existing = await sql`SELECT * FROM users WHERE email = ${email}`
+export async function getOrCreateUser(email: string, name?: string): Promise<User> {
+  const existing = (await sql`SELECT * FROM users WHERE email = ${email}`) as unknown as User[]
 
   if (existing.length > 0) {
-    return existing[0] as User
+    const user = existing[0]
+    if (name && !user.name) {
+      await sql`UPDATE users SET name = ${name}, updated_at = NOW() WHERE id = ${user.id}`
+      user.name = name
+    }
+    return user
   }
 
-  // Create user — they'll set up their org after first login
-  const newUser = await sql`
-    INSERT INTO users (email, role)
-    VALUES (${email}, 'admin')
+  const newUser = (await sql`
+    INSERT INTO users (email, name, role)
+    VALUES (${email}, ${name ?? null}, 'admin')
     RETURNING *
-  `
+  `) as unknown as User[]
 
-  return newUser[0] as User
+  return newUser[0]
 }
 
 export async function createSession(userId: string): Promise<string> {

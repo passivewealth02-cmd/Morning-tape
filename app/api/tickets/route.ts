@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, logActivity } from '@/lib/auth'
-import { sql } from '@/lib/db'
-import { analyzeMaintenanceTicket } from '@/lib/anthropic'
+import { getSession } from '@/lib/auth'
+import { sql, type Organization } from '@/lib/db'
+import { createTicketWithAI } from '@/lib/tickets'
+import { checkResourceLimit, getEffectivePlan, getUsage } from '@/lib/plans'
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,7 +65,8 @@ export async function POST(request: NextRequest) {
       description,
       urgency = 'medium',
       property_id = null,
-      unit_id = null,
+      unit_id: unitIdInput = null,
+      unit_number = null,
       tenant_name = null,
       tenant_email = null,
       tenant_phone = null,
@@ -74,48 +76,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and description are required' }, { status: 400 })
     }
 
-    const inserted = await sql`
-      INSERT INTO maintenance_tickets (
-        organization_id, property_id, unit_id, title, description, urgency,
-        status, tenant_name, tenant_email, tenant_phone, created_by
+    const orgRows = (await sql`
+      SELECT * FROM organizations WHERE id = ${user.organization_id}
+    `) as unknown as Organization[]
+    if (orgRows.length === 0) {
+      return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
+    }
+    const usage = await getUsage(user.organization_id)
+    const check = checkResourceLimit(getEffectivePlan(orgRows[0]), 'tickets_per_month', usage.tickets_this_month)
+    if (!check.allowed) {
+      return NextResponse.json(
+        {
+          error: `You've hit your monthly ticket limit (${check.current}/${check.limit}). Upgrade to ${check.upgrade_to ?? 'a higher plan'} to keep creating tickets.`,
+          limit_exceeded: true,
+          upgrade_to: check.upgrade_to,
+        },
+        { status: 402 }
       )
-      VALUES (
-        ${user.organization_id}, ${property_id}, ${unit_id}, ${title}, ${description}, ${urgency},
-        'new', ${tenant_name}, ${tenant_email}, ${tenant_phone}, ${user.id}
-      )
-      RETURNING *
-    `
-
-    const ticket = inserted[0]
-
-    try {
-      const analysis = await analyzeMaintenanceTicket(title, description)
-      await sql`
-        UPDATE maintenance_tickets
-        SET
-          ai_category = ${analysis.category},
-          ai_vendor_type = ${analysis.vendor_type},
-          ai_summary = ${analysis.summary},
-          ai_escalation_risk = ${analysis.escalation_risk},
-          urgency = ${analysis.urgency}
-        WHERE id = ${ticket.id}
-      `
-      ticket.ai_category = analysis.category
-      ticket.ai_vendor_type = analysis.vendor_type
-      ticket.ai_summary = analysis.summary
-      ticket.ai_escalation_risk = analysis.escalation_risk
-      ticket.urgency = analysis.urgency
-    } catch (aiError) {
-      console.error('AI analysis failed:', aiError)
     }
 
-    await logActivity({
-      organizationId: user.organization_id,
-      ticketId: ticket.id,
-      userId: user.id,
-      actionType: 'ticket_created',
-      description: `Ticket created: ${title}`,
-      metadata: { urgency: ticket.urgency },
+    let resolvedUnitId: string | null = unitIdInput
+    if (!resolvedUnitId && unit_number && property_id) {
+      const unitMatch = (await sql`
+        SELECT id FROM units
+        WHERE property_id = ${property_id}
+          AND LOWER(unit_number) = LOWER(${unit_number})
+        LIMIT 1
+      `) as unknown as Array<{ id: string }>
+      if (unitMatch.length > 0) resolvedUnitId = unitMatch[0].id
+    }
+
+    const ticket = await createTicketWithAI({
+      organization_id: user.organization_id,
+      title,
+      description: unit_number && !resolvedUnitId
+        ? `${description}\n\n(Unit: ${unit_number})`
+        : description,
+      urgency,
+      property_id,
+      unit_id: resolvedUnitId,
+      tenant_name,
+      tenant_email,
+      tenant_phone,
+      created_by: user.id,
+      source: 'manual',
     })
 
     return NextResponse.json(ticket, { status: 201 })

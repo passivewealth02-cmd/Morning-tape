@@ -5,6 +5,15 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+function extractJson(text: string): string {
+  const trimmed = text.trim()
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  if (fenced) return fenced[1].trim()
+  const firstBrace = trimmed.search(/[{[]/)
+  if (firstBrace > 0) return trimmed.slice(firstBrace)
+  return trimmed
+}
+
 export type TicketAnalysis = {
   category: string
   urgency: 'low' | 'medium' | 'high' | 'emergency'
@@ -53,9 +62,9 @@ Return ONLY valid JSON, no markdown.`
   if (content.type !== 'text') throw new Error('Unexpected response type')
 
   try {
-    return JSON.parse(content.text) as TicketAnalysis
-  } catch {
-    // Fallback if parsing fails
+    return JSON.parse(extractJson(content.text)) as TicketAnalysis
+  } catch (err) {
+    console.error('analyzeMaintenanceTicket JSON parse failed. Raw text:', content.text, err)
     return {
       category: 'general',
       urgency: 'medium',
@@ -98,8 +107,69 @@ Return ONLY a JSON array like: ["id1", "id2"] — no markdown.`
   if (content.type !== 'text') return []
 
   try {
-    return JSON.parse(content.text) as string[]
-  } catch {
+    return JSON.parse(extractJson(content.text)) as string[]
+  } catch (err) {
+    console.error('recommendVendors JSON parse failed. Raw text:', content.text, err)
     return vendors.slice(0, 3).map(v => v.id)
+  }
+}
+
+export type InboundEmailExtraction = {
+  title: string
+  description: string
+  tenant_name: string | null
+  tenant_email: string | null
+  tenant_phone: string | null
+  property_hint: string | null
+  unit_hint: string | null
+}
+
+export async function extractTicketFromEmail(
+  from: string,
+  subject: string,
+  body: string
+): Promise<InboundEmailExtraction> {
+  const prompt = `You are processing an inbound email reporting a property maintenance issue. Extract structured ticket data.
+
+From: ${from}
+Subject: ${subject}
+Body:
+${body.slice(0, 4000)}
+
+Return a JSON object with exactly these fields:
+{
+  "title": "short ticket title, max 80 chars, summarizing the issue",
+  "description": "clean issue description with email signatures/quoted replies/disclaimers stripped",
+  "tenant_name": "the sender's full name if discoverable, else null",
+  "tenant_email": "the sender's email address",
+  "tenant_phone": "phone number if mentioned in body or signature, else null",
+  "property_hint": "property name or street address if mentioned, else null",
+  "unit_hint": "unit/apartment number if mentioned (e.g. 'Apt 4B', '#203'), else null"
+}
+
+Return ONLY valid JSON, no markdown.`
+
+  const message = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const content = message.content[0]
+  if (content.type !== 'text') throw new Error('Unexpected response type')
+
+  try {
+    return JSON.parse(extractJson(content.text)) as InboundEmailExtraction
+  } catch (err) {
+    console.error('extractTicketFromEmail JSON parse failed. Raw text:', content.text, err)
+    return {
+      title: subject.slice(0, 80) || 'Maintenance request',
+      description: body.slice(0, 1000),
+      tenant_name: null,
+      tenant_email: from,
+      tenant_phone: null,
+      property_hint: null,
+      unit_hint: null,
+    }
   }
 }
