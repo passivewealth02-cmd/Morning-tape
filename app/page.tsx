@@ -171,7 +171,7 @@ export default function Home() {
                 period: '/month',
                 description: 'For large portfolios',
                 features: ['Everything in Growth', 'Unlimited properties', 'Advanced SLA reporting', 'White-label option', 'Dedicated CSM', 'API access'],
-                cta: 'Contact us',
+                cta: 'Get started',
                 highlighted: false,
               },
             ].map(plan => (
