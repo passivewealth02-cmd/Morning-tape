@@ -38,6 +38,11 @@ export async function POST(request: NextRequest) {
         const plan = planForPriceId(priceId)
 
         if (plan) {
+          // Preserve Stripe's trial_end so the dashboard can show the countdown
+          const trialEndsAt = subscription.trial_end
+            ? new Date(subscription.trial_end * 1000).toISOString()
+            : null
+
           await sql`
             UPDATE organizations
             SET
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
               plan_status = ${subscription.status},
               stripe_subscription_id = ${subscription.id},
               stripe_price_id = ${priceId},
-              trial_ends_at = NULL,
+              trial_ends_at = ${trialEndsAt},
               updated_at = NOW()
             WHERE id = ${orgId}
           `

@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
     }
 
     const origin = `${request.nextUrl.protocol}//${request.nextUrl.host}`
+    const isNewSubscriber = !org.stripe_subscription_id
+
     const checkout = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
@@ -61,6 +63,8 @@ export async function POST(request: NextRequest) {
       cancel_url: `${origin}/dashboard/settings?billing=cancelled`,
       subscription_data: {
         metadata: { organization_id: org.id, plan },
+        // New subscribers get a 14-day trial; existing subscribers switching plans do not
+        ...(isNewSubscriber ? { trial_period_days: 14 } : {}),
       },
       metadata: { organization_id: org.id, plan },
     })

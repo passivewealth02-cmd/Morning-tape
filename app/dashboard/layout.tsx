@@ -25,10 +25,10 @@ export default async function DashboardLayout({
   `) as unknown as Organization[]
   const org = orgRows[0]
 
-  const showTrialBanner = org && (
-    isTrialActive(org) ||
-    (org.plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date())
-  )
+  const trialActive = org && isTrialActive(org)
+  const trialExpiredNoCard = org && org.plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date()
+  const pastDue = org && org.plan_status === 'past_due'
+  const showTrialBanner = trialActive || trialExpiredNoCard || pastDue
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -37,7 +37,8 @@ export default async function DashboardLayout({
         {showTrialBanner && org && (
           <TrialBanner
             daysLeft={trialDaysLeft(org)}
-            expired={!isTrialActive(org)}
+            expired={!trialActive && !pastDue}
+            pastDue={!!pastDue}
           />
         )}
         {children}

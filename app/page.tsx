@@ -48,7 +48,7 @@ const faqs = [
   { q: 'How does the AI triage work?', a: 'When a request arrives, Maintena’s AI reads it, determines the trade (plumbing, electrical, HVAC, and more), scores urgency, flags safety risks, and writes a plain-English summary — work that used to take a coordinator minutes per ticket.' },
   { q: 'Do tenants need to download an app?', a: 'No. Tenants can submit maintenance requests by email, web form, or SMS. Maintena captures each one automatically and turns it into a structured ticket, so there is nothing for residents to install.' },
   { q: 'Can I use my own vendors?', a: 'Yes. Add your existing vendor network and Maintena will rank them for each job by trade, location, availability, and past performance. You are never locked into a marketplace.' },
-  { q: 'How much does Maintena cost?', a: 'Plans start at $99/month for the Starter plan, $299/month for Growth, and $599/month for Pro. Every plan includes a 14-day free trial — no credit card required. After the trial, you are charged the price of the plan you chose.' },
+  { q: 'How much does Maintena cost?', a: 'Plans start at $99/month for the Starter plan, $299/month for Growth, and $599/month for Pro. Every plan includes a 14-day free trial. Your card is charged automatically after the trial ends — cancel any time before day 14 and you pay nothing.' },
   { q: 'How long does setup take?', a: 'Most teams are up and running in under five minutes. Add your properties and vendors, connect your intake email, and start routing requests the same day.' },
 ]
 
@@ -77,7 +77,7 @@ export default function Home() {
 
             <HeroCTA />
 
-            <p className="mt-6 text-sm text-gray-400">14-day free trial · No credit card required · Setup in under 5 minutes</p>
+            <p className="mt-6 text-sm text-gray-400">14-day free trial · Cancel anytime · Setup in under 5 minutes</p>
           </div>
         </section>
 
@@ -221,7 +221,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-14 sm:mb-16">
               <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">Simple, predictable pricing</h2>
-              <p className="text-base sm:text-lg text-gray-500">14-day free trial on every plan. No credit card required.</p>
+              <p className="text-base sm:text-lg text-gray-500">14-day free trial on every plan. Cancel before day 14 and pay nothing.</p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">

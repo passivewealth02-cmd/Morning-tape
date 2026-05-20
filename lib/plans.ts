@@ -61,12 +61,8 @@ export const PLAN_LABELS: Record<OrganizationPlan, string> = {
   pro: 'Pro',
 }
 
-/**
- * If a trial has expired and no paid plan is active, the org is treated
- * as if on Starter limits (read-only-ish — they can keep using what they
- * have but can't grow beyond Starter caps).
- */
-export function getEffectivePlan(org: Pick<Organization, 'plan' | 'trial_ends_at'>): OrganizationPlan {
+export function getEffectivePlan(org: Pick<Organization, 'plan' | 'plan_status' | 'trial_ends_at'>): OrganizationPlan {
+  // Legacy DB-only trial: if expired with no paid plan, fall back to starter
   if (org.plan === 'trial' && org.trial_ends_at) {
     const expired = new Date(org.trial_ends_at).getTime() < Date.now()
     if (expired) return 'starter'
@@ -74,12 +70,18 @@ export function getEffectivePlan(org: Pick<Organization, 'plan' | 'trial_ends_at
   return org.plan
 }
 
-export function isTrialActive(org: Pick<Organization, 'plan' | 'trial_ends_at'>): boolean {
-  if (org.plan !== 'trial' || !org.trial_ends_at) return false
-  return new Date(org.trial_ends_at).getTime() > Date.now()
+// True if the org is currently inside an active trial window (Stripe-managed or legacy DB)
+export function isTrialActive(org: Pick<Organization, 'plan' | 'plan_status' | 'trial_ends_at'>): boolean {
+  if (!org.trial_ends_at) return false
+  const notExpired = new Date(org.trial_ends_at).getTime() > Date.now()
+  // Stripe-managed trial: plan is already the chosen plan, status is 'trialing'
+  if (org.plan_status === 'trialing') return notExpired
+  // Legacy DB-only trial
+  if (org.plan === 'trial') return notExpired
+  return false
 }
 
-export function trialDaysLeft(org: Pick<Organization, 'plan' | 'trial_ends_at'>): number {
+export function trialDaysLeft(org: Pick<Organization, 'plan' | 'plan_status' | 'trial_ends_at'>): number {
   if (!isTrialActive(org)) return 0
   const ms = new Date(org.trial_ends_at!).getTime() - Date.now()
   return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)))

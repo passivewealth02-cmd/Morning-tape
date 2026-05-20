@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { getSession } from '@/lib/auth'
-import { sql } from '@/lib/db'
+import { sql, type OrganizationPlan } from '@/lib/db'
 import { TRIAL_DAYS } from '@/lib/plans'
+
+const VALID_PLANS: OrganizationPlan[] = ['starter', 'growth', 'pro']
 
 function slugify(name: string): string {
   return name
@@ -21,21 +23,24 @@ export async function POST(request: NextRequest) {
 
     const { user } = session
     const body = await request.json()
-    const { organization_name } = body
+    const { organization_name, plan } = body
 
     if (!organization_name || typeof organization_name !== 'string') {
       return NextResponse.json({ error: 'Organization name is required' }, { status: 400 })
     }
 
+    const chosenPlan: OrganizationPlan = VALID_PLANS.includes(plan) ? plan : 'growth'
+
     const baseSlug = slugify(organization_name)
     const suffix = Math.random().toString(36).slice(2, 6)
     const slug = `${baseSlug}-${suffix}`
     const inboxToken = randomBytes(16).toString('hex')
+    // Fallback trial_ends_at in case Stripe checkout is abandoned before completing
     const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString()
 
     const org = await sql`
       INSERT INTO organizations (name, slug, inbox_token, plan, plan_status, trial_ends_at)
-      VALUES (${organization_name.trim()}, ${slug}, ${inboxToken}, 'trial', 'trialing', ${trialEndsAt})
+      VALUES (${organization_name.trim()}, ${slug}, ${inboxToken}, ${chosenPlan}, 'trialing', ${trialEndsAt})
       RETURNING *
     `
 

@@ -1,7 +1,24 @@
 import Link from 'next/link'
 import { Sparkles, AlertCircle } from 'lucide-react'
 
-export function TrialBanner({ daysLeft, expired }: { daysLeft: number; expired: boolean }) {
+export function TrialBanner({ daysLeft, expired, pastDue }: { daysLeft: number; expired: boolean; pastDue?: boolean }) {
+  if (pastDue) {
+    return (
+      <div className="bg-red-50 border-b border-red-200 px-6 py-2.5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm text-red-900">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>Payment failed. Update your payment method to keep access.</span>
+        </div>
+        <Link
+          href="/dashboard/settings"
+          className="text-xs font-medium bg-red-700 text-white px-3 py-1.5 rounded-md hover:bg-red-800 transition-colors shrink-0"
+        >
+          Update card
+        </Link>
+      </div>
+    )
+  }
+
   if (expired) {
     return (
       <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between gap-3">
@@ -29,7 +46,7 @@ export function TrialBanner({ daysLeft, expired }: { daysLeft: number; expired: 
       <div className={`flex items-center gap-2 text-sm ${urgent ? 'text-amber-900' : 'text-indigo-900'}`}>
         <Sparkles className="w-4 h-4 shrink-0" />
         <span>
-          {daysLeft} {daysLeft === 1 ? 'day' : 'days'} left in your free trial.
+          {daysLeft} {daysLeft === 1 ? 'day' : 'days'} left in your free trial — your card will be charged when it ends.
         </span>
       </div>
       <Link
@@ -40,7 +57,7 @@ export function TrialBanner({ daysLeft, expired }: { daysLeft: number; expired: 
             : 'bg-indigo-600 text-white hover:bg-indigo-700'
         }`}
       >
-        Upgrade
+        Manage billing
       </Link>
     </div>
   )
