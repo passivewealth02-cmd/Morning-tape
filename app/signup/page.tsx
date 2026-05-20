@@ -81,7 +81,7 @@ function SignupForm() {
         <div className="text-center mb-8">
           <Link href="/" className="text-xl font-semibold text-gray-900">Maintena</Link>
           <h1 className="text-gray-900 text-lg font-semibold mt-3">Create your account</h1>
-          <p className="text-gray-500 text-sm mt-1">Free trial — no credit card required</p>
+          <p className="text-gray-500 text-sm mt-1">14-day free trial — no credit card required</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm space-y-4">
