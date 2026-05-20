@@ -23,19 +23,24 @@ export default function OgImage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div
             style={{
-              width: 64,
-              height: 64,
-              borderRadius: 16,
+              width: 72,
+              height: 72,
+              borderRadius: 18,
               background: 'white',
-              color: '#4f46e5',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 44,
-              fontWeight: 800,
             }}
           >
-            M
+            <svg width="42" height="42" viewBox="0 0 120 120" fill="none">
+              <path
+                d="M 24 96 L 24 30 L 60 70 L 96 30 L 96 96"
+                stroke="#4f46e5"
+                strokeWidth={16}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
           <div style={{ fontSize: 40, fontWeight: 700 }}>Maintena</div>
         </div>

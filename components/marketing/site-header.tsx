@@ -1,11 +1,12 @@
 import Link from 'next/link'
+import { MaintenaLogo } from '@/components/brand/logo'
 
 export function SiteHeader() {
   return (
     <header className="border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <nav className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between" aria-label="Primary">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-gray-900">
-          Maintena
+        <Link href="/" aria-label="Maintena home">
+          <MaintenaLogo textClassName="text-lg font-semibold tracking-tight text-gray-900" />
         </Link>
         <div className="flex items-center gap-5">
           <Link href="/#features" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">Features</Link>

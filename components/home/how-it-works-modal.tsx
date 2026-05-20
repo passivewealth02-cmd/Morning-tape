@@ -5,6 +5,7 @@ import {
   X, ArrowRight, ArrowLeft, Zap, Users, ClipboardList, Bell, BarChart3,
   CheckCircle2, Play, Pause, Sparkles, Inbox, Send, ShieldCheck,
 } from 'lucide-react'
+import { MaintenaMark } from '@/components/brand/logo'
 
 /* ---------- accent palettes (literal classes so Tailwind keeps them) ---------- */
 type Accent = {
@@ -418,7 +419,7 @@ export function HowItWorksModal({ open, onClose }: { open: boolean; onClose: () 
         <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-gray-100">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
+              <MaintenaMark className="w-4 h-4 text-white" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-gray-900 leading-none">How Maintena works</h2>

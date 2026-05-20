@@ -9,9 +9,9 @@ import {
   Building2,
   Settings,
   LogOut,
-  Zap,
   Sparkles,
 } from 'lucide-react'
+import { MaintenaLogo } from '@/components/brand/logo'
 
 const nav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,11 +27,8 @@ export function Sidebar() {
   return (
     <aside className="w-56 shrink-0 border-r border-gray-100 bg-white flex flex-col h-screen sticky top-0">
       {/* Logo */}
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
-          <Zap className="w-4 h-4 text-white" />
-        </div>
-        <span className="text-sm font-semibold text-gray-900">Maintena</span>
+      <div className="px-5 py-4 border-b border-gray-100">
+        <MaintenaLogo />
       </div>
 
       {/* Nav */}

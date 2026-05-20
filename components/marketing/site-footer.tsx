@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { MaintenaLogo } from '@/components/brand/logo'
 
 const solutions = [
   { href: '/property-maintenance-software', label: 'Property maintenance software' },
@@ -21,7 +22,7 @@ export function SiteFooter() {
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div>
-            <span className="text-sm font-semibold text-gray-900">Maintena</span>
+            <MaintenaLogo />
             <p className="mt-3 text-sm text-gray-500 leading-relaxed max-w-xs">
               AI-powered property maintenance software that captures requests, dispatches vendors, and tracks every repair.
             </p>

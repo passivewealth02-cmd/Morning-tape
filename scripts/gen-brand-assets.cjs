@@ -79,6 +79,27 @@ function Banner() {
   )
 }
 
+// ---------- App icon (rounded indigo tile + white monogram) ----------
+function AppIcon({ radius }) {
+  return h(
+    'div',
+    {
+      style: {
+        width: '100%', height: '100%', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', background: '#4f46e5', borderRadius: radius,
+      },
+    },
+    h(
+      'svg',
+      { width: '56%', height: '56%', viewBox: '0 0 120 120', fill: 'none' },
+      h('path', {
+        d: 'M 24 96 L 24 30 L 60 70 L 96 30 L 96 96',
+        stroke: '#ffffff', strokeWidth: 16, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none',
+      })
+    )
+  )
+}
+
 async function render(node, opts, outfile) {
   const res = new ImageResponse(node, opts)
   fs.writeFileSync(outfile, Buffer.from(await res.arrayBuffer()))
@@ -88,4 +109,7 @@ async function render(node, opts, outfile) {
 ;(async () => {
   await render(h(Avatar), { width: 400, height: 400 }, 'public/brand/twitter-avatar.png')
   await render(h(Banner), { width: 1500, height: 500 }, 'public/brand/twitter-banner.png')
+  await render(h(AppIcon, { radius: 40 }), { width: 180, height: 180 }, 'public/apple-icon.png')
+  await render(h(AppIcon, { radius: 7 }), { width: 32, height: 32 }, 'public/icon-light-32x32.png')
+  await render(h(AppIcon, { radius: 7 }), { width: 32, height: 32 }, 'public/icon-dark-32x32.png')
 })()
