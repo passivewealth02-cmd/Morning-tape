@@ -48,7 +48,7 @@ const faqs = [
   { q: 'How does the AI triage work?', a: 'When a request arrives, Maintena’s AI reads it, determines the trade (plumbing, electrical, HVAC, and more), scores urgency, flags safety risks, and writes a plain-English summary — work that used to take a coordinator minutes per ticket.' },
   { q: 'Do tenants need to download an app?', a: 'No. Tenants can submit maintenance requests by email, web form, or SMS. Maintena captures each one automatically and turns it into a structured ticket, so there is nothing for residents to install.' },
   { q: 'Can I use my own vendors?', a: 'Yes. Add your existing vendor network and Maintena will rank them for each job by trade, location, availability, and past performance. You are never locked into a marketplace.' },
-  { q: 'How much does Maintena cost?', a: 'Plans start at $99/month for the Starter plan, $299/month for Growth, and $599/month for Pro. You can start free with no credit card required and upgrade as your portfolio grows.' },
+  { q: 'How much does Maintena cost?', a: 'Plans start at $99/month for the Starter plan, $299/month for Growth, and $599/month for Pro. Every plan includes a 14-day free trial — no credit card required. After the trial, you are charged the price of the plan you chose.' },
   { q: 'How long does setup take?', a: 'Most teams are up and running in under five minutes. Add your properties and vendors, connect your intake email, and start routing requests the same day.' },
 ]
 
@@ -77,7 +77,7 @@ export default function Home() {
 
             <HeroCTA />
 
-            <p className="mt-6 text-sm text-gray-400">No credit card required · Setup in under 5 minutes</p>
+            <p className="mt-6 text-sm text-gray-400">14-day free trial · No credit card required · Setup in under 5 minutes</p>
           </div>
         </section>
 
@@ -221,14 +221,14 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-14 sm:mb-16">
               <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">Simple, predictable pricing</h2>
-              <p className="text-base sm:text-lg text-gray-500">Start free, scale as you grow.</p>
+              <p className="text-base sm:text-lg text-gray-500">14-day free trial on every plan. No credit card required.</p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
               {[
-                { name: 'Starter', price: '$99', period: '/month', description: 'Perfect for small portfolios', features: ['Up to 100 tickets/month', '1 property', '5 vendors', 'Email notifications', 'Activity timeline'], cta: 'Get started', highlighted: false },
+                { name: 'Starter', price: '$99', period: '/month', description: 'Perfect for small portfolios', features: ['Up to 100 tickets/month', '1 property', '5 vendors', 'Email notifications', 'Activity timeline'], cta: 'Start free trial', highlighted: false },
                 { name: 'Growth', price: '$299', period: '/month', description: 'For growing property managers', features: ['Unlimited tickets', 'Up to 10 properties', 'Unlimited vendors', 'AI categorization', 'AI vendor dispatch', 'SLA tracking', 'Priority support'], cta: 'Start free trial', highlighted: true },
-                { name: 'Pro', price: '$599', period: '/month', description: 'For large portfolios', features: ['Everything in Growth', 'Unlimited properties', 'Advanced SLA reporting', 'White-label option', 'Dedicated CSM', 'API access'], cta: 'Get started', highlighted: false },
+                { name: 'Pro', price: '$599', period: '/month', description: 'For large portfolios', features: ['Everything in Growth', 'Unlimited properties', 'Advanced SLA reporting', 'White-label option', 'Dedicated CSM', 'API access'], cta: 'Start free trial', highlighted: false },
               ].map(plan => (
                 <div
                   key={plan.name}
@@ -239,10 +239,11 @@ export default function Home() {
                   )}
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">{plan.name}</h3>
                   <p className="text-sm text-gray-500 mb-4">{plan.description}</p>
-                  <div className="flex items-baseline gap-1 mb-6">
+                  <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
                     <span className="text-gray-500">{plan.period}</span>
                   </div>
+                  <p className="text-xs text-gray-400 mb-6">14 days free, then {plan.price}/mo</p>
                   <ul className="space-y-2.5 mb-8">
                     {plan.features.map(f => (
                       <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
@@ -292,7 +293,7 @@ export default function Home() {
               href="/signup"
               className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
             >
-              Get started free
+              Start your free trial
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

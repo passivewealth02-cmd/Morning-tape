@@ -15,7 +15,7 @@ export function HeroCTA() {
           href="/signup"
           className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
         >
-          Start for free
+          Start free trial
           <ArrowRight className="w-4 h-4" />
         </Link>
         <button

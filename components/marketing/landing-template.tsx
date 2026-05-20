@@ -127,12 +127,12 @@ export function LandingTemplate({ page }: { page: LandingPage }) {
         <section className="bg-gray-900 py-16">
           <div className="max-w-3xl mx-auto px-6 text-center">
             <h2 className="text-3xl font-semibold text-white mb-4">Ready to streamline property maintenance?</h2>
-            <p className="text-gray-400 text-lg mb-8">Start free in minutes — no credit card required.</p>
+            <p className="text-gray-400 text-lg mb-8">14-day free trial — no credit card required.</p>
             <Link
               href="/signup"
               className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
             >
-              Get started free
+              Start free trial
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
