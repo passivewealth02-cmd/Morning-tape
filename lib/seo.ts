@@ -64,7 +64,7 @@ export function organizationSchema() {
     logo: `${SITE.url}${SITE.logo}`,
     description: SITE.description,
     foundingDate: '2024',
-    sameAs: [] as string[],
+    sameAs: ['https://x.com/trymaintena'],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer support',
