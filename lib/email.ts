@@ -149,6 +149,65 @@ export async function sendTenantVendorAssignedEmail(
   }
 }
 
+export type SlaBreachItem = {
+  id: string
+  title: string
+  urgency: string
+  hoursOverdue: number
+  propertyName?: string | null
+  vendorName?: string | null
+}
+
+export async function sendSlaBreachEmail(
+  managerEmail: string,
+  items: SlaBreachItem[],
+  appUrl: string
+): Promise<boolean> {
+  if (items.length === 0) return true
+  const rows = items
+    .map(
+      it => `
+      <tr>
+        <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
+          <a href="${appUrl}/dashboard/tickets/${it.id}" style="font-size: 13px; color: #4f46e5; text-decoration: none; font-weight: 500;">${it.title}</a>
+          <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
+            ${it.urgency} · ${it.hoursOverdue}h overdue${it.propertyName ? ` · ${it.propertyName}` : ''}${it.vendorName ? ` · ${it.vendorName}` : ' · unassigned'}
+          </div>
+        </td>
+      </tr>`
+    )
+    .join('')
+  try {
+    const { error } = await resend.emails.send({
+      from: 'Maintena <onboarding@resend.dev>',
+      to: managerEmail,
+      subject: `${items.length} maintenance ticket${items.length === 1 ? '' : 's'} past SLA`,
+      html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f9fafb; padding: 40px 20px; margin: 0;">
+  <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid #f3f4f6;">
+      <span style="font-size: 14px; font-weight: 600; color: #111827;">Maintena</span>
+    </div>
+    <div style="padding: 24px;">
+      <h2 style="font-size: 16px; font-weight: 600; color: #b45309; margin: 0 0 6px 0;">${items.length} ticket${items.length === 1 ? '' : 's'} need attention</h2>
+      <p style="font-size: 13px; color: #6b7280; margin: 0 0 16px 0;">The following tickets have passed their SLA target and are not yet completed.</p>
+      <table style="width: 100%; border-collapse: collapse;">${rows}</table>
+    </div>
+    <div style="padding: 14px 24px; background-color: #f9fafb; border-top: 1px solid #f3f4f6;">
+      <p style="font-size: 11px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Maintena · You receive this because you manage this workspace.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    })
+    return !error
+  } catch {
+    return false
+  }
+}
+
 type TenantStatusUpdateType = 'in_progress' | 'completed' | 'waiting'
 
 const STATUS_COPY: Record<TenantStatusUpdateType, { subject: string; headline: string; body: string }> = {

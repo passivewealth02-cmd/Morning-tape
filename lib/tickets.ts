@@ -1,8 +1,20 @@
 import 'server-only'
-import { sql, type MaintenanceTicket, type Vendor } from './db'
+import { sql, type MaintenanceTicket, type Vendor, type TicketUrgency } from './db'
 import { analyzeMaintenanceTicket, recommendVendors } from './anthropic'
 import { sendVendorAssignmentEmail, sendTenantVendorAssignedEmail } from './email'
 import { logActivity } from './auth'
+
+// Target first-response/resolution window per urgency, in hours
+const SLA_HOURS: Record<TicketUrgency, number> = {
+  emergency: 4,
+  high: 24,
+  medium: 72,
+  low: 168,
+}
+
+export function slaDueDate(urgency: TicketUrgency, from: number = Date.now()): string {
+  return new Date(from + SLA_HOURS[urgency] * 60 * 60 * 1000).toISOString()
+}
 
 export type CreateTicketInput = {
   organization_id: string
@@ -36,11 +48,11 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
   const inserted = (await sql`
     INSERT INTO maintenance_tickets (
       organization_id, property_id, unit_id, title, description, urgency,
-      status, tenant_name, tenant_email, tenant_phone, created_by
+      status, tenant_name, tenant_email, tenant_phone, created_by, sla_due_at
     )
     VALUES (
       ${organization_id}, ${property_id}, ${unit_id}, ${title}, ${description}, ${urgency},
-      'new', ${tenant_name}, ${tenant_email}, ${tenant_phone}, ${created_by}
+      'new', ${tenant_name}, ${tenant_email}, ${tenant_phone}, ${created_by}, ${slaDueDate(urgency)}
     )
     RETURNING *
   `) as unknown as MaintenanceTicket[]
@@ -59,6 +71,8 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
   let analysisOk = false
   try {
     const analysis = await analyzeMaintenanceTicket(title, description)
+    // Re-derive the SLA window from the AI-determined urgency, anchored to creation time
+    const slaDue = slaDueDate(analysis.urgency, new Date(ticket.created_at).getTime())
     await sql`
       UPDATE maintenance_tickets
       SET
@@ -66,7 +80,8 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
         ai_vendor_type = ${analysis.vendor_type},
         ai_summary = ${analysis.summary},
         ai_escalation_risk = ${analysis.escalation_risk},
-        urgency = ${analysis.urgency}
+        urgency = ${analysis.urgency},
+        sla_due_at = ${slaDue}
       WHERE id = ${ticket.id}
     `
     ticket.ai_category = analysis.category
@@ -74,6 +89,7 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
     ticket.ai_summary = analysis.summary
     ticket.ai_escalation_risk = analysis.escalation_risk
     ticket.urgency = analysis.urgency
+    ticket.sla_due_at = slaDue
     analysisOk = true
   } catch (aiError) {
     console.error('AI analysis failed:', aiError)
