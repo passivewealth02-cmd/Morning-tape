@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyMagicLinkToken, getOrCreateUser, createSession } from '@/lib/auth'
+import { verifyMagicLinkToken, getOrCreateUser, createSession, SESSION_COOKIE_NAME, sessionCookieOptions } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token')
@@ -15,8 +15,10 @@ export async function GET(request: NextRequest) {
   }
 
   const user = await getOrCreateUser(email)
-  await createSession(user.id)
+  const session = await createSession(user.id)
 
   const destination = user.organization_id ? '/dashboard' : '/onboarding'
-  return NextResponse.redirect(`${origin}${destination}`)
+  const response = NextResponse.redirect(`${origin}${destination}`)
+  response.cookies.set(SESSION_COOKIE_NAME, session.token, sessionCookieOptions(session.expiresAt))
+  return response
 }
