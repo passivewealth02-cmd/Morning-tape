@@ -3,8 +3,18 @@ import { cookies } from 'next/headers'
 import { sql, type User } from './db'
 import { randomBytes } from 'crypto'
 
-const SESSION_COOKIE_NAME = 'maintena_session'
+export const SESSION_COOKIE_NAME = 'maintena_session'
 const SESSION_DURATION_DAYS = 30
+
+export function sessionCookieOptions(expiresAt: Date) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    expires: expiresAt,
+    path: '/',
+  }
+}
 
 export async function createMagicLinkToken(email: string): Promise<string> {
   const token = randomBytes(32).toString('hex')
@@ -58,7 +68,7 @@ export async function getOrCreateUser(email: string, name?: string): Promise<Use
   return newUser[0]
 }
 
-export async function createSession(userId: string): Promise<string> {
+export async function createSession(userId: string): Promise<{ token: string; expiresAt: Date }> {
   const token = randomBytes(32).toString('hex')
   const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000)
 
@@ -67,16 +77,7 @@ export async function createSession(userId: string): Promise<string> {
     VALUES (${userId}, ${token}, ${expiresAt.toISOString()})
   `
 
-  const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    expires: expiresAt,
-    path: '/',
-  })
-
-  return token
+  return { token, expiresAt }
 }
 
 export async function getSession(): Promise<{ user: User } | null> {
