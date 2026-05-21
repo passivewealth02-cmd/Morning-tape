@@ -43,18 +43,53 @@ const PLANS: Plan[] = [
   },
 ]
 
+export type SubscriptionInfo = {
+  status: string
+  cancelAtPeriodEnd: boolean
+  endsAt: string | null
+}
+
 export function PlanCard({
   currentPlan,
   canManage,
   hasSubscription,
+  subscription,
 }: {
   currentPlan: OrganizationPlan
   canManage: boolean
   hasSubscription: boolean
+  subscription?: SubscriptionInfo | null
 }) {
   const router = useRouter()
-  const [pending, setPending] = useState<OrganizationPlan | 'portal' | null>(null)
+  const [pending, setPending] = useState<OrganizationPlan | 'portal' | 'cancel' | null>(null)
   const [error, setError] = useState('')
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
+
+  const isTrialing = subscription?.status === 'trialing'
+  const scheduledToCancel = subscription?.cancelAtPeriodEnd ?? false
+  const endsAtLabel = subscription?.endsAt
+    ? new Date(subscription.endsAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+    : null
+
+  const setCancellation = async (reactivate: boolean) => {
+    setPending('cancel')
+    setError('')
+    try {
+      const res = await fetch('/api/billing/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reactivate }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not update subscription')
+      setConfirmingCancel(false)
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setPending(null)
+    }
+  }
 
   const handleSelect = async (plan: OrganizationPlan) => {
     if (plan === currentPlan || pending) return
@@ -183,13 +218,64 @@ export function PlanCard({
       )}
 
       {canManage && hasSubscription && (
-        <button
-          onClick={handleManage}
-          disabled={pending !== null}
-          className="mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-700"
-        >
-          {pending === 'portal' ? 'Opening...' : 'Manage billing & invoices'}
-        </button>
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+          <button
+            onClick={handleManage}
+            disabled={pending !== null}
+            className="block text-xs font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            {pending === 'portal' ? 'Opening...' : 'Manage billing & invoices'}
+          </button>
+
+          {scheduledToCancel ? (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+              <p className="text-xs text-amber-900">
+                {isTrialing
+                  ? `Your trial is set to cancel${endsAtLabel ? ` on ${endsAtLabel}` : ''}. You won't be charged.`
+                  : `Your plan will cancel${endsAtLabel ? ` on ${endsAtLabel}` : ' at the end of the period'}. You keep access until then.`}
+              </p>
+              <button
+                onClick={() => setCancellation(true)}
+                disabled={pending !== null}
+                className="mt-2 text-xs font-medium bg-amber-900 text-white px-3 py-1.5 rounded-md hover:bg-amber-800 disabled:opacity-50"
+              >
+                {pending === 'cancel' ? 'Working...' : 'Resume plan'}
+              </button>
+            </div>
+          ) : confirmingCancel ? (
+            <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+              <p className="text-xs text-gray-700">
+                {isTrialing
+                  ? `Cancel your trial? You'll keep access${endsAtLabel ? ` until ${endsAtLabel}` : ' until it ends'} and won't be charged.`
+                  : `Cancel your plan? You'll keep access${endsAtLabel ? ` until ${endsAtLabel}` : ' until the end of your billing period'}, then it won't renew.`}
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => setCancellation(false)}
+                  disabled={pending !== null}
+                  className="text-xs font-medium bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  {pending === 'cancel' ? 'Cancelling...' : 'Yes, cancel'}
+                </button>
+                <button
+                  onClick={() => setConfirmingCancel(false)}
+                  disabled={pending !== null}
+                  className="text-xs font-medium text-gray-600 hover:text-gray-800"
+                >
+                  Keep plan
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmingCancel(true)}
+              disabled={pending !== null}
+              className="block text-xs font-medium text-gray-500 hover:text-red-600"
+            >
+              {isTrialing ? 'Cancel trial' : 'Cancel plan'}
+            </button>
+          )}
+        </div>
       )}
     </section>
   )

@@ -2,7 +2,8 @@ import { getSession } from '@/lib/auth'
 import { sql, type Organization } from '@/lib/db'
 import { headers } from 'next/headers'
 import { InboxWebhookCard } from '@/components/settings/inbox-webhook-card'
-import { PlanCard } from '@/components/settings/plan-card'
+import { PlanCard, type SubscriptionInfo } from '@/components/settings/plan-card'
+import { stripe, isStripeConfigured } from '@/lib/stripe'
 
 export default async function SettingsPage() {
   const session = await getSession()
@@ -12,6 +13,22 @@ export default async function SettingsPage() {
     SELECT * FROM organizations WHERE id = ${session.user.organization_id}
   `) as unknown as Organization[]
   const org = orgRows[0]
+
+  let subscription: SubscriptionInfo | null = null
+  if (org?.stripe_subscription_id && isStripeConfigured()) {
+    try {
+      const sub = await stripe.subscriptions.retrieve(org.stripe_subscription_id)
+      const item = sub.items.data[0] as unknown as { current_period_end?: number }
+      const endUnix = sub.status === 'trialing' ? sub.trial_end : item?.current_period_end ?? null
+      subscription = {
+        status: sub.status,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        endsAt: endUnix ? new Date(endUnix * 1000).toISOString() : null,
+      }
+    } catch (err) {
+      console.error('Could not load subscription:', err)
+    }
+  }
 
   const hdrs = await headers()
   const host = hdrs.get('host') ?? 'morning-tape.vercel.app'
@@ -75,6 +92,7 @@ export default async function SettingsPage() {
             currentPlan={org.plan ?? 'trial'}
             canManage={session.user.role === 'admin'}
             hasSubscription={Boolean(org.stripe_subscription_id)}
+            subscription={subscription}
           />
         </div>
       )}
