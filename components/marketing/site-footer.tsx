@@ -12,6 +12,7 @@ const solutions = [
 const product = [
   { href: '/#features', label: 'Features' },
   { href: '/#pricing', label: 'Pricing' },
+  { href: '/compare', label: 'Compare' },
   { href: '/#faq', label: 'FAQ' },
   { href: '/signup', label: 'Get started' },
 ]
