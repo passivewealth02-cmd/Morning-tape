@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { MaintenanceTicket, TicketMessage, ActivityLog, Vendor, TicketStatus } from '@/lib/db'
+import type { MaintenanceTicket, TicketMessage, ActivityLog, Vendor, TicketStatus, TicketFile } from '@/lib/db'
 import { UrgencyBadge } from './urgency-badge'
 import { formatDistanceToNow, format } from 'date-fns'
-import { ChevronLeft, Zap, AlertTriangle, Clock, User, Building2, MessageSquare, Activity } from 'lucide-react'
+import { ChevronLeft, Zap, AlertTriangle, Clock, User, Building2, MessageSquare, Activity, Paperclip, FileText, Upload } from 'lucide-react'
 
 const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
   { value: 'new', label: 'New' },
@@ -21,17 +21,48 @@ interface TicketDetailProps {
   messages: TicketMessage[]
   activityLogs: ActivityLog[]
   vendors: Vendor[]
+  files: TicketFile[]
   currentUserId: string
 }
 
-export function TicketDetail({ ticket: initial, messages: initialMessages, activityLogs, vendors, currentUserId }: TicketDetailProps) {
+function isImage(fileType: string | null): boolean {
+  return !!fileType && fileType.startsWith('image/')
+}
+
+export function TicketDetail({ ticket: initial, messages: initialMessages, activityLogs, vendors, files: initialFiles, currentUserId }: TicketDetailProps) {
   const [ticket, setTicket] = useState(initial)
   const [messages, setMessages] = useState(initialMessages)
+  const [files, setFiles] = useState(initialFiles)
   const [newMessage, setNewMessage] = useState('')
   const [isInternal, setIsInternal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [sendingMsg, setSendingMsg] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   const [activeTab, setActiveTab] = useState<'messages' | 'activity'>('messages')
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setUploadError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`/api/tickets/${ticket.id}/files`, {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+      setFiles(prev => [...prev, data])
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   const updateTicket = async (changes: Partial<MaintenanceTicket>) => {
     setSaving(true)
@@ -209,6 +240,62 @@ export function TicketDetail({ ticket: initial, messages: initialMessages, activ
                     </div>
                   ))
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* Files & Photos */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <Paperclip className="w-4 h-4 text-gray-400" />
+                Files & Photos
+                <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{files.length}</span>
+              </h2>
+              <label className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md cursor-pointer transition-colors ${
+                uploading ? 'bg-gray-100 text-gray-400 cursor-wait' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              }`}>
+                <Upload className="w-3.5 h-3.5" />
+                {uploading ? 'Uploading...' : 'Upload'}
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {uploadError && <p className="text-xs text-red-600 mb-3">{uploadError}</p>}
+
+            {files.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-6">
+                No files yet. Upload repair photos or completion evidence (images or PDF, up to 4.5 MB).
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {files.map(file => (
+                  <a
+                    key={file.id}
+                    href={file.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group block rounded-lg border border-gray-200 overflow-hidden hover:border-indigo-300 transition-colors"
+                  >
+                    {isImage(file.file_type) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={file.file_url} alt={file.file_name || 'attachment'} className="w-full h-24 object-cover" />
+                    ) : (
+                      <div className="w-full h-24 flex items-center justify-center bg-gray-50">
+                        <FileText className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                    <p className="text-[11px] text-gray-500 truncate px-2 py-1.5 group-hover:text-indigo-600">
+                      {file.file_name || 'Attachment'}
+                    </p>
+                  </a>
+                ))}
               </div>
             )}
           </div>

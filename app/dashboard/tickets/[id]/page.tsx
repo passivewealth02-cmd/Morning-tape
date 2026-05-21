@@ -2,7 +2,7 @@ import { getSession } from '@/lib/auth'
 import { sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { TicketDetail } from '@/components/tickets/ticket-detail'
-import type { MaintenanceTicket, TicketMessage, ActivityLog, Vendor } from '@/lib/db'
+import type { MaintenanceTicket, TicketMessage, ActivityLog, Vendor, TicketFile } from '@/lib/db'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -15,7 +15,7 @@ export default async function TicketDetailPage({ params }: Props) {
 
   const orgId = session.user.organization_id!
 
-  const [ticketRows, messages, logs, vendors] = await Promise.all([
+  const [ticketRows, messages, logs, vendors, files] = await Promise.all([
     sql`
       SELECT
         t.*,
@@ -52,6 +52,11 @@ export default async function TicketDetailPage({ params }: Props) {
       WHERE organization_id = ${orgId}
       ORDER BY rating DESC, name ASC
     `,
+    sql`
+      SELECT * FROM ticket_files
+      WHERE ticket_id = ${id}
+      ORDER BY created_at ASC
+    `,
   ])
 
   if (ticketRows.length === 0) notFound()
@@ -63,6 +68,7 @@ export default async function TicketDetailPage({ params }: Props) {
         messages={messages as unknown as TicketMessage[]}
         activityLogs={logs as unknown as ActivityLog[]}
         vendors={vendors as unknown as Vendor[]}
+        files={files as unknown as TicketFile[]}
         currentUserId={session.user.id}
       />
     </div>
