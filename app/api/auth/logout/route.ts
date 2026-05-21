@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { destroySession } from '@/lib/auth'
+import { destroySession, SESSION_COOKIE_NAME } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   const origin = `${request.nextUrl.protocol}//${request.nextUrl.host}`
@@ -8,5 +8,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error logging out:', error)
   }
-  return NextResponse.redirect(`${origin}/login`, { status: 303 })
+  const response = NextResponse.redirect(`${origin}/login`, { status: 303 })
+  response.cookies.delete(SESSION_COOKIE_NAME)
+  return response
 }
