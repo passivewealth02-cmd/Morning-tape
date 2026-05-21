@@ -11,6 +11,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-5">
           <Link href="/#features" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">Features</Link>
           <Link href="/property-maintenance-software" className="hidden md:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">Solutions</Link>
+          <Link href="/compare" className="hidden md:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">Compare</Link>
           <Link href="/#pricing" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
           <Link href="/#faq" className="hidden md:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">FAQ</Link>
           <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Sign in</Link>
