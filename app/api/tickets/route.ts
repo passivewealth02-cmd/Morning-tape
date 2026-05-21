@@ -95,6 +95,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // A property can only be referenced if it belongs to the caller's organization.
+    if (property_id) {
+      const propRows = (await sql`
+        SELECT id FROM properties
+        WHERE id = ${property_id} AND organization_id = ${user.organization_id}
+      `) as unknown as Array<{ id: string }>
+      if (propRows.length === 0) {
+        return NextResponse.json({ error: 'Property not found' }, { status: 404 })
+      }
+    }
+
     let resolvedUnitId: string | null = unitIdInput
     if (!resolvedUnitId && unit_number && property_id) {
       const unitMatch = (await sql`
@@ -104,6 +115,18 @@ export async function POST(request: NextRequest) {
         LIMIT 1
       `) as unknown as Array<{ id: string }>
       if (unitMatch.length > 0) resolvedUnitId = unitMatch[0].id
+    }
+
+    // A directly-supplied unit must resolve to a unit within an org-owned property.
+    if (resolvedUnitId) {
+      const unitRows = (await sql`
+        SELECT u.id FROM units u
+        JOIN properties p ON p.id = u.property_id
+        WHERE u.id = ${resolvedUnitId} AND p.organization_id = ${user.organization_id}
+      `) as unknown as Array<{ id: string }>
+      if (unitRows.length === 0) {
+        return NextResponse.json({ error: 'Unit not found' }, { status: 404 })
+      }
     }
 
     const ticket = await createTicketWithAI({

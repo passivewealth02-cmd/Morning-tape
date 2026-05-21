@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createMagicLinkToken } from '@/lib/auth'
 import { sendMagicLinkEmail } from '@/lib/email'
+import { rateLimit, clientIp, tooManyRequests } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Limit per IP to prevent abuse of the email sender across many addresses.
+    const ipLimit = await rateLimit(`magic:ip:${clientIp(request)}`, 10, 3600)
+    if (!ipLimit.allowed) return tooManyRequests(ipLimit.retryAfter)
+
     const { email } = await request.json()
 
     if (!email || typeof email !== 'string') {
@@ -21,6 +26,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Limit per address to prevent email-bombing a specific target.
+    const emailLimit = await rateLimit(`magic:email:${email.toLowerCase()}`, 5, 900)
+    if (!emailLimit.allowed) return tooManyRequests(emailLimit.retryAfter)
 
     // Create magic link token
     const token = await createMagicLinkToken(email.toLowerCase())

@@ -110,6 +110,19 @@ export async function PATCH(
       tenant_phone,
     } = body
 
+    // A vendor can only be assigned if it belongs to the caller's organization.
+    let assignedVendorName: string | null = null
+    if (assigned_vendor_id) {
+      const vendorRows = (await sql`
+        SELECT name FROM vendors
+        WHERE id = ${assigned_vendor_id} AND organization_id = ${user.organization_id}
+      `) as unknown as { name: string }[]
+      if (vendorRows.length === 0) {
+        return NextResponse.json({ error: 'Vendor not found' }, { status: 404 })
+      }
+      assignedVendorName = vendorRows[0].name
+    }
+
     const newStatus = status ?? current.status
     const newUrgency = urgency ?? current.urgency
     const newVendorId = assigned_vendor_id !== undefined ? assigned_vendor_id : current.assigned_vendor_id
@@ -161,8 +174,7 @@ export async function PATCH(
       // Notify tenant that a vendor has been assigned
       const tenantEmail = updated[0].tenant_email ?? current.tenant_email
       if (tenantEmail) {
-        const vendorRows = (await sql`SELECT name FROM vendors WHERE id = ${assigned_vendor_id}`) as unknown as { name: string }[]
-        const vendorName = vendorRows[0]?.name ?? 'a vendor'
+        const vendorName = assignedVendorName ?? 'a vendor'
         const propertyRows = current.property_id
           ? (await sql`SELECT name FROM properties WHERE id = ${current.property_id}`) as unknown as { name: string }[]
           : []

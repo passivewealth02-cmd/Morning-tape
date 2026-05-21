@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql, type Organization, type Property } from '@/lib/db'
 import { createTicketWithAI } from '@/lib/tickets'
+import { rateLimit, clientIp, tooManyRequests } from '@/lib/rate-limit'
 
 const URGENCIES = ['low', 'medium', 'high', 'emergency'] as const
 type Urgency = (typeof URGENCIES)[number]
@@ -15,6 +16,12 @@ export async function POST(
 ) {
   try {
     const { token } = await params
+
+    // Throttle public submissions to prevent ticket spam and AI-cost abuse.
+    const ipLimit = await rateLimit(`submit:ip:${clientIp(request)}`, 10, 3600)
+    if (!ipLimit.allowed) return tooManyRequests(ipLimit.retryAfter)
+    const tokenLimit = await rateLimit(`submit:token:${token}`, 30, 3600)
+    if (!tokenLimit.allowed) return tooManyRequests(tokenLimit.retryAfter)
 
     const orgs = (await sql`
       SELECT * FROM organizations WHERE inbox_token = ${token} LIMIT 1

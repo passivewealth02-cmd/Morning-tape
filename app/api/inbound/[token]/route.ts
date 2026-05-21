@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sql, type Organization, type Property } from '@/lib/db'
 import { extractTicketFromEmail } from '@/lib/anthropic'
 import { createTicketWithAI } from '@/lib/tickets'
+import { rateLimit, tooManyRequests } from '@/lib/rate-limit'
 
 type EmailPayload = {
   from?: string
@@ -54,6 +55,10 @@ export async function POST(
   try {
     const { token } = await params
 
+    // Bound inbound volume per inbox to cap AI cost and ticket spam.
+    const inboundLimit = await rateLimit(`inbound:token:${token}`, 60, 3600)
+    if (!inboundLimit.allowed) return tooManyRequests(inboundLimit.retryAfter)
+
     const orgs = (await sql`
       SELECT * FROM organizations WHERE inbox_token = ${token} LIMIT 1
     `) as unknown as Organization[]
@@ -66,9 +71,9 @@ export async function POST(
     const raw = (await request.json()) as Record<string, unknown>
     const payload = normalizePayload(raw)
 
-    const from = payload.from ?? ''
-    const subject = payload.subject ?? ''
-    const bodyText = payload.text ?? payload.body ?? (payload.html ? stripHtml(payload.html) : '')
+    const from = (payload.from ?? '').slice(0, 320)
+    const subject = (payload.subject ?? '').slice(0, 300)
+    const bodyText = (payload.text ?? payload.body ?? (payload.html ? stripHtml(payload.html) : '')).slice(0, 10000)
 
     if (!from || (!subject && !bodyText)) {
       return NextResponse.json({ error: 'Missing from/subject/body' }, { status: 400 })

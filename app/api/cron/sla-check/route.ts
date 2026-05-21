@@ -16,13 +16,16 @@ type BreachRow = {
 type ManagerRow = { organization_id: string; email: string }
 
 export async function GET(request: NextRequest) {
-  // Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` when CRON_SECRET is set.
+  // Vercel Cron sends `Authorization: Bearer <CRON_SECRET>`. Fail closed: if the
+  // secret is not configured the endpoint refuses to run rather than being public.
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret) {
-    const auth = request.headers.get('authorization')
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (!cronSecret) {
+    console.error('CRON_SECRET is not configured; refusing to run SLA check')
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 503 })
+  }
+  const auth = request.headers.get('authorization')
+  if (auth !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {

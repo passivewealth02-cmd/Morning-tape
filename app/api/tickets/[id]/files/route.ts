@@ -4,14 +4,34 @@ import { getSession, logActivity } from '@/lib/auth'
 import { sql, type TicketFile } from '@/lib/db'
 
 const MAX_SIZE = 4.5 * 1024 * 1024 // 4.5 MB — Vercel serverless request body limit
-const ALLOWED_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-  'image/heic',
-  'application/pdf',
-]
+const MAX_FILES_PER_TICKET = 20
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'pdf'])
+
+// Detect the real file type from its leading bytes. The client-supplied MIME type
+// is untrusted (trivially spoofable), so an attacker could otherwise upload active
+// content (HTML/JS/SVG) declared as image/png. We only accept files whose actual
+// bytes match a supported image or PDF signature.
+function sniffMime(bytes: Uint8Array): string | null {
+  const at = (sig: number[], offset = 0) => sig.every((b, i) => bytes[offset + i] === b)
+
+  if (at([0xff, 0xd8, 0xff])) return 'image/jpeg'
+  if (at([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return 'image/png'
+  if (at([0x47, 0x49, 0x46, 0x38])) return 'image/gif'
+  if (at([0x52, 0x49, 0x46, 0x46]) && at([0x57, 0x45, 0x42, 0x50], 8)) return 'image/webp'
+  if (at([0x25, 0x50, 0x44, 0x46])) return 'application/pdf'
+  if (at([0x66, 0x74, 0x79, 0x70], 4)) {
+    const brand = String.fromCharCode(...bytes.slice(8, 12))
+    if (['heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1', 'heim', 'heis'].includes(brand)) {
+      return 'image/heic'
+    }
+  }
+  return null
+}
+
+function sanitizeFilename(name: string): string {
+  const base = name.split(/[\\/]/).pop() || 'file'
+  return base.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200) || 'file'
+}
 
 export async function POST(
   request: NextRequest,
@@ -39,18 +59,21 @@ export async function POST(
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 })
     }
 
+    const countRows = (await sql`
+      SELECT COUNT(*)::int AS count FROM ticket_files WHERE ticket_id = ${id}
+    `) as unknown as { count: number }[]
+    if ((countRows[0]?.count ?? 0) >= MAX_FILES_PER_TICKET) {
+      return NextResponse.json(
+        { error: `This ticket already has the maximum of ${MAX_FILES_PER_TICKET} files.` },
+        { status: 400 }
+      )
+    }
+
     const formData = await request.formData()
     const file = formData.get('file')
 
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-    }
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Unsupported file type. Upload an image or PDF.' },
-        { status: 400 }
-      )
     }
 
     if (file.size > MAX_SIZE) {
@@ -60,14 +83,34 @@ export async function POST(
       )
     }
 
-    const blob = await put(`tickets/${id}/${file.name}`, file, {
+    const safeName = sanitizeFilename(file.name)
+    const ext = safeName.includes('.') ? safeName.split('.').pop()!.toLowerCase() : ''
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return NextResponse.json(
+        { error: 'Unsupported file type. Upload an image or PDF.' },
+        { status: 400 }
+      )
+    }
+
+    const buffer = await file.arrayBuffer()
+    const detectedType = sniffMime(new Uint8Array(buffer))
+    if (!detectedType) {
+      return NextResponse.json(
+        { error: 'File contents do not match a supported image or PDF.' },
+        { status: 400 }
+      )
+    }
+
+    // Store with the verified content type so the blob is never served as active content.
+    const blob = await put(`tickets/${id}/${safeName}`, buffer, {
       access: 'public',
       addRandomSuffix: true,
+      contentType: detectedType,
     })
 
     const inserted = (await sql`
       INSERT INTO ticket_files (ticket_id, file_url, file_name, file_type, uploaded_by)
-      VALUES (${id}, ${blob.url}, ${file.name}, ${file.type}, ${user.id})
+      VALUES (${id}, ${blob.url}, ${safeName}, ${detectedType}, ${user.id})
       RETURNING *
     `) as unknown as TicketFile[]
 
@@ -76,8 +119,8 @@ export async function POST(
       ticketId: id,
       userId: user.id,
       actionType: 'file_uploaded',
-      description: `File uploaded: ${file.name}`,
-      metadata: { file_name: file.name, file_type: file.type },
+      description: `File uploaded: ${safeName}`,
+      metadata: { file_name: safeName, file_type: detectedType },
     })
 
     return NextResponse.json(inserted[0], { status: 201 })

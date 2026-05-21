@@ -137,6 +137,14 @@ CREATE TABLE IF NOT EXISTS ticket_files (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Rate limiting (fixed-window counters for public endpoints)
+CREATE TABLE IF NOT EXISTS rate_limits (
+  bucket TEXT NOT NULL,
+  window_start TIMESTAMPTZ NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (bucket, window_start)
+);
+
 -- Activity logs (audit timeline)
 CREATE TABLE IF NOT EXISTS activity_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
