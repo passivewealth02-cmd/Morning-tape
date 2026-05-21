@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth'
 import { sql, type Organization } from '@/lib/db'
 import { headers } from 'next/headers'
 import { InboxWebhookCard } from '@/components/settings/inbox-webhook-card'
+import { TenantLinkCard } from '@/components/settings/tenant-link-card'
 import { PlanCard, type SubscriptionInfo } from '@/components/settings/plan-card'
 import { stripe, isStripeConfigured } from '@/lib/stripe'
 
@@ -35,6 +36,9 @@ export default async function SettingsPage() {
   const protocol = host.includes('localhost') ? 'http' : 'https'
   const inboundUrl = org?.inbox_token
     ? `${protocol}://${host}/api/inbound/${org.inbox_token}`
+    : null
+  const tenantSubmitUrl = org?.inbox_token
+    ? `${protocol}://${host}/submit/${org.inbox_token}`
     : null
 
   return (
@@ -96,6 +100,8 @@ export default async function SettingsPage() {
           />
         </div>
       )}
+
+      {tenantSubmitUrl && <TenantLinkCard url={tenantSubmitUrl} />}
 
       {inboundUrl && <InboxWebhookCard url={inboundUrl} />}
     </div>

@@ -27,7 +27,7 @@ export type CreateTicketInput = {
   tenant_email?: string | null
   tenant_phone?: string | null
   created_by?: string | null
-  source?: 'manual' | 'email' | 'sms'
+  source?: 'manual' | 'email' | 'sms' | 'web'
 }
 
 export async function createTicketWithAI(input: CreateTicketInput): Promise<MaintenanceTicket> {
