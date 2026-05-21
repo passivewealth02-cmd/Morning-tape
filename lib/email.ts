@@ -3,6 +3,18 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// Escape user-supplied values before interpolating them into HTML email bodies
+// to prevent HTML/phishing-link injection in notification emails.
+function escapeHtml(value: string | null | undefined): string {
+  if (value == null) return ''
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export async function sendMagicLinkEmail(email: string, token: string, baseUrl?: string): Promise<boolean> {
   const resolvedBase = baseUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const magicLink = `${resolvedBase}/verify?token=${token}`
@@ -84,9 +96,9 @@ export async function sendVendorAssignmentEmail(
   <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 32px 24px;">
     <p style="font-size: 15px; font-weight: 600; color: #111827; margin: 0 0 4px 0;">Maintena</p>
     <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 16px 0 8px 0;">New job assigned to you</h2>
-    <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;">Hi ${vendorName},</p>
-    <p style="font-size: 14px; color: #374151; margin: 0 0 8px 0;"><strong>Job:</strong> ${ticketTitle}</p>
-    ${propertyName ? `<p style="font-size: 14px; color: #374151; margin: 0 0 24px 0;"><strong>Property:</strong> ${propertyName}</p>` : ''}
+    <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;">Hi ${escapeHtml(vendorName)},</p>
+    <p style="font-size: 14px; color: #374151; margin: 0 0 8px 0;"><strong>Job:</strong> ${escapeHtml(ticketTitle)}</p>
+    ${propertyName ? `<p style="font-size: 14px; color: #374151; margin: 0 0 24px 0;"><strong>Property:</strong> ${escapeHtml(propertyName)}</p>` : ''}
     <p style="font-size: 12px; color: #9ca3af; margin: 24px 0 0 0;">© ${new Date().getFullYear()} Maintena</p>
   </div>
 </body>
@@ -107,7 +119,7 @@ export async function sendTenantVendorAssignedEmail(
   vendorName: string,
   propertyName?: string | null
 ): Promise<boolean> {
-  const greeting = tenantName ? `Hi ${tenantName},` : 'Hello,'
+  const greeting = tenantName ? `Hi ${escapeHtml(tenantName)},` : 'Hello,'
   try {
     const { error } = await resend.emails.send({
       from: 'Maintena <onboarding@resend.dev>',
@@ -130,9 +142,9 @@ export async function sendTenantVendorAssignedEmail(
       <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;">${greeting}</p>
       <p style="font-size: 15px; color: #111827; margin: 0 0 8px 0; font-weight: 500;">A vendor has been assigned to your request.</p>
       <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;">
-        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Request:</strong> ${ticketTitle}</p>
-        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Assigned vendor:</strong> ${vendorName}</p>
-        ${propertyName ? `<p style="font-size: 13px; color: #374151; margin: 0;"><strong>Property:</strong> ${propertyName}</p>` : ''}
+        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Request:</strong> ${escapeHtml(ticketTitle)}</p>
+        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Assigned vendor:</strong> ${escapeHtml(vendorName)}</p>
+        ${propertyName ? `<p style="font-size: 13px; color: #374151; margin: 0;"><strong>Property:</strong> ${escapeHtml(propertyName)}</p>` : ''}
       </div>
       <p style="font-size: 13px; color: #6b7280; margin: 0;">Your property manager will keep you updated as work progresses.</p>
     </div>
@@ -169,9 +181,9 @@ export async function sendSlaBreachEmail(
       it => `
       <tr>
         <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
-          <a href="${appUrl}/dashboard/tickets/${it.id}" style="font-size: 13px; color: #4f46e5; text-decoration: none; font-weight: 500;">${it.title}</a>
+          <a href="${appUrl}/dashboard/tickets/${it.id}" style="font-size: 13px; color: #4f46e5; text-decoration: none; font-weight: 500;">${escapeHtml(it.title)}</a>
           <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
-            ${it.urgency} · ${it.hoursOverdue}h overdue${it.propertyName ? ` · ${it.propertyName}` : ''}${it.vendorName ? ` · ${it.vendorName}` : ' · unassigned'}
+            ${escapeHtml(it.urgency)} · ${it.hoursOverdue}h overdue${it.propertyName ? ` · ${escapeHtml(it.propertyName)}` : ''}${it.vendorName ? ` · ${escapeHtml(it.vendorName)}` : ' · unassigned'}
           </div>
         </td>
       </tr>`
@@ -236,7 +248,7 @@ export async function sendTenantStatusUpdateEmail(
   propertyName?: string | null
 ): Promise<boolean> {
   const copy = STATUS_COPY[newStatus]
-  const greeting = tenantName ? `Hi ${tenantName},` : 'Hello,'
+  const greeting = tenantName ? `Hi ${escapeHtml(tenantName)},` : 'Hello,'
   try {
     const { error } = await resend.emails.send({
       from: 'Maintena <onboarding@resend.dev>',
@@ -259,8 +271,8 @@ export async function sendTenantStatusUpdateEmail(
       <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;">${greeting}</p>
       <p style="font-size: 15px; color: #111827; margin: 0 0 8px 0; font-weight: 500;">${copy.headline}</p>
       <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;">
-        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Request:</strong> ${ticketTitle}</p>
-        ${propertyName ? `<p style="font-size: 13px; color: #374151; margin: 0;"><strong>Property:</strong> ${propertyName}</p>` : ''}
+        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Request:</strong> ${escapeHtml(ticketTitle)}</p>
+        ${propertyName ? `<p style="font-size: 13px; color: #374151; margin: 0;"><strong>Property:</strong> ${escapeHtml(propertyName)}</p>` : ''}
       </div>
       <p style="font-size: 13px; color: #6b7280; margin: 0;">${copy.body}</p>
     </div>

@@ -101,9 +101,10 @@ export async function POST(
       )
     }
 
-    // Store with the verified content type so the blob is never served as active content.
+    // Store privately — attachments are served only through the authenticated
+    // download proxy (GET on this file's route), never via a public blob URL.
     const blob = await put(`tickets/${id}/${safeName}`, buffer, {
-      access: 'public',
+      access: 'private',
       addRandomSuffix: true,
       contentType: detectedType,
     })

@@ -300,10 +300,10 @@ export function TicketDetail({ ticket: initial, messages: initialMessages, activ
                     >
                       <X className="w-3 h-3" />
                     </button>
-                    <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="block">
+                    <a href={`/api/tickets/${ticket.id}/files/${file.id}`} target="_blank" rel="noopener noreferrer" className="block">
                       {isImage(file.file_type) ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={file.file_url} alt={file.file_name || 'attachment'} className="w-full h-24 object-cover" />
+                        <img src={`/api/tickets/${ticket.id}/files/${file.id}`} alt={file.file_name || 'attachment'} className="w-full h-24 object-cover" />
                       ) : (
                         <div className="w-full h-24 flex items-center justify-center bg-gray-50">
                           <FileText className="w-8 h-8 text-gray-400" />
