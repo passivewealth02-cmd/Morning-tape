@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { getOrCreateUser, createSession } from '@/lib/auth'
+import { getOrCreateUser, createSession, SESSION_COOKIE_NAME, sessionCookieOptions } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   const origin = `${request.nextUrl.protocol}//${request.nextUrl.host}`
@@ -59,9 +59,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const user = await getOrCreateUser(email.toLowerCase(), name ?? undefined)
-    await createSession(user.id)
+    const session = await createSession(user.id)
     const destination = user.organization_id ? '/dashboard' : '/onboarding'
-    return NextResponse.redirect(`${origin}${destination}`)
+    const response = NextResponse.redirect(`${origin}${destination}`)
+    response.cookies.set(SESSION_COOKIE_NAME, session.token, sessionCookieOptions(session.expiresAt))
+    return response
   } catch (error) {
     console.error('OAuth sign-in error:', error)
     return NextResponse.redirect(`${origin}/login?error=signin_failed`)
