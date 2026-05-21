@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { Property, Vendor } from '@/lib/db'
-import { Zap } from 'lucide-react'
+import { Zap, Paperclip, X } from 'lucide-react'
 
 interface NewTicketFormProps {
   properties: Property[]
@@ -34,8 +34,19 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState('')
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }))
+
+  const addFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files ?? [])
+    setPendingFiles(prev => [...prev, ...selected])
+    e.target.value = ''
+  }
+
+  const removeFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,6 +73,14 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
       }
 
       const ticket = await res.json()
+
+      // Upload any attached files now that the ticket exists
+      for (const file of pendingFiles) {
+        const fd = new FormData()
+        fd.append('file', file)
+        await fetch(`/api/tickets/${ticket.id}/files`, { method: 'POST', body: fd })
+      }
+
       router.push(`/dashboard/tickets/${ticket.id}`)
     } catch (err) {
       setStatus('error')
@@ -183,6 +202,46 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
             disabled={status === 'loading'}
           />
         </div>
+      </div>
+
+      {/* Photos & Files */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700">Photos & Files (Optional)</h2>
+          <label className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md cursor-pointer transition-colors ${
+            status === 'loading' ? 'bg-gray-100 text-gray-400' : 'bg-gray-900 hover:bg-gray-700 text-white'
+          }`}>
+            <Paperclip className="w-3.5 h-3.5" />
+            Add files
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              multiple
+              onChange={addFiles}
+              disabled={status === 'loading'}
+              className="hidden"
+            />
+          </label>
+        </div>
+        {pendingFiles.length === 0 ? (
+          <p className="text-xs text-gray-400">Attach photos of the issue (images or PDF, up to 4.5 MB each).</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {pendingFiles.map((file, i) => (
+              <li key={`${file.name}-${i}`} className="flex items-center justify-between text-sm text-gray-700 bg-gray-50 rounded-md px-3 py-1.5">
+                <span className="truncate">{file.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(i)}
+                  disabled={status === 'loading'}
+                  className="text-gray-400 hover:text-red-600 shrink-0 ml-2"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

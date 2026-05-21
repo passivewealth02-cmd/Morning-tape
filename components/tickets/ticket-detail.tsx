@@ -5,7 +5,7 @@ import Link from 'next/link'
 import type { MaintenanceTicket, TicketMessage, ActivityLog, Vendor, TicketStatus, TicketFile } from '@/lib/db'
 import { UrgencyBadge } from './urgency-badge'
 import { formatDistanceToNow, format } from 'date-fns'
-import { ChevronLeft, Zap, AlertTriangle, Clock, User, Building2, MessageSquare, Activity, Paperclip, FileText, Upload } from 'lucide-react'
+import { ChevronLeft, Zap, AlertTriangle, Clock, User, Building2, MessageSquare, Activity, Paperclip, FileText, Upload, X } from 'lucide-react'
 
 const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
   { value: 'new', label: 'New' },
@@ -61,6 +61,18 @@ export function TicketDetail({ ticket: initial, messages: initialMessages, activ
     } finally {
       setUploading(false)
       e.target.value = ''
+    }
+  }
+
+  const handleDeleteFile = async (fileId: string) => {
+    const prev = files
+    setFiles(curr => curr.filter(f => f.id !== fileId))
+    try {
+      const res = await fetch(`/api/tickets/${ticket.id}/files/${fileId}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('delete failed')
+    } catch {
+      setFiles(prev) // restore on failure
+      setUploadError('Could not delete file. Try again.')
     }
   }
 
@@ -276,25 +288,32 @@ export function TicketDetail({ ticket: initial, messages: initialMessages, activ
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {files.map(file => (
-                  <a
+                  <div
                     key={file.id}
-                    href={file.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group block rounded-lg border border-gray-200 overflow-hidden hover:border-indigo-300 transition-colors"
+                    className="group relative rounded-lg border border-gray-200 overflow-hidden hover:border-indigo-300 transition-colors"
                   >
-                    {isImage(file.file_type) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={file.file_url} alt={file.file_name || 'attachment'} className="w-full h-24 object-cover" />
-                    ) : (
-                      <div className="w-full h-24 flex items-center justify-center bg-gray-50">
-                        <FileText className="w-8 h-8 text-gray-400" />
-                      </div>
-                    )}
-                    <p className="text-[11px] text-gray-500 truncate px-2 py-1.5 group-hover:text-indigo-600">
-                      {file.file_name || 'Attachment'}
-                    </p>
-                  </a>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFile(file.id)}
+                      title="Remove file"
+                      className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-black/70 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                    <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="block">
+                      {isImage(file.file_type) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={file.file_url} alt={file.file_name || 'attachment'} className="w-full h-24 object-cover" />
+                      ) : (
+                        <div className="w-full h-24 flex items-center justify-center bg-gray-50">
+                          <FileText className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                      <p className="text-[11px] text-gray-500 truncate px-2 py-1.5 group-hover:text-indigo-600">
+                        {file.file_name || 'Attachment'}
+                      </p>
+                    </a>
+                  </div>
                 ))}
               </div>
             )}
