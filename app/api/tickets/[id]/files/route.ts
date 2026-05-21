@@ -127,8 +127,6 @@ export async function POST(
     return NextResponse.json(inserted[0], { status: 201 })
   } catch (error) {
     console.error('Error uploading file:', error)
-    // TEMPORARY: surface the underlying error to diagnose upload failures.
-    const detail = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({ error: `Upload failed: ${detail}` }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
