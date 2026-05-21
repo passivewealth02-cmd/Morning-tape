@@ -1,7 +1,7 @@
 import 'server-only'
 import { sql, type MaintenanceTicket, type Vendor } from './db'
 import { analyzeMaintenanceTicket, recommendVendors } from './anthropic'
-import { sendVendorAssignmentEmail } from './email'
+import { sendVendorAssignmentEmail, sendTenantVendorAssignedEmail } from './email'
 import { logActivity } from './auth'
 
 export type CreateTicketInput = {
@@ -165,11 +165,15 @@ async function autoAssignVendor(ticket: MaintenanceTicket): Promise<void> {
   })
 
   if (top.email) {
-    await sendVendorAssignmentEmail(
-      top.email,
-      top.name,
+    await sendVendorAssignmentEmail(top.email, top.name, ticket.title, ticket.id)
+  }
+
+  if (ticket.tenant_email) {
+    await sendTenantVendorAssignedEmail(
+      ticket.tenant_email,
+      ticket.tenant_name,
       ticket.title,
-      ticket.id
+      top.name,
     )
   }
 }

@@ -99,3 +99,121 @@ export async function sendVendorAssignmentEmail(
     return false
   }
 }
+
+export async function sendTenantVendorAssignedEmail(
+  tenantEmail: string,
+  tenantName: string | null,
+  ticketTitle: string,
+  vendorName: string,
+  propertyName?: string | null
+): Promise<boolean> {
+  const greeting = tenantName ? `Hi ${tenantName},` : 'Hello,'
+  try {
+    const { error } = await resend.emails.send({
+      from: 'Maintena <onboarding@resend.dev>',
+      to: tenantEmail,
+      subject: `Update on your maintenance request: ${ticketTitle}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f9fafb; padding: 40px 20px; margin: 0;">
+  <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid #f3f4f6;">
+      <div style="display: inline-flex; align-items: center; gap: 8px;">
+        <div style="width: 24px; height: 24px; background-color: #4f46e5; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+          <span style="color: white; font-size: 12px; font-weight: bold;">M</span>
+        </div>
+        <span style="font-size: 14px; font-weight: 600; color: #111827;">Maintena</span>
+      </div>
+    </div>
+    <div style="padding: 28px 24px;">
+      <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;">${greeting}</p>
+      <p style="font-size: 15px; color: #111827; margin: 0 0 8px 0; font-weight: 500;">A vendor has been assigned to your request.</p>
+      <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;">
+        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Request:</strong> ${ticketTitle}</p>
+        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Assigned vendor:</strong> ${vendorName}</p>
+        ${propertyName ? `<p style="font-size: 13px; color: #374151; margin: 0;"><strong>Property:</strong> ${propertyName}</p>` : ''}
+      </div>
+      <p style="font-size: 13px; color: #6b7280; margin: 0;">Your property manager will keep you updated as work progresses.</p>
+    </div>
+    <div style="padding: 14px 24px; background-color: #f9fafb; border-top: 1px solid #f3f4f6;">
+      <p style="font-size: 11px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Maintena · The AI operations layer for property maintenance.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    })
+    return !error
+  } catch {
+    return false
+  }
+}
+
+type TenantStatusUpdateType = 'in_progress' | 'completed' | 'waiting'
+
+const STATUS_COPY: Record<TenantStatusUpdateType, { subject: string; headline: string; body: string }> = {
+  in_progress: {
+    subject: 'Work has started on your maintenance request',
+    headline: 'Work has started on your request.',
+    body: 'A technician is now working on the repair. Your property manager will notify you when it is complete.',
+  },
+  completed: {
+    subject: 'Your maintenance request has been completed',
+    headline: 'Your repair has been completed.',
+    body: 'The work has been finished and your ticket is now closed. Please contact your property manager if you have any concerns.',
+  },
+  waiting: {
+    subject: 'Your maintenance request is on hold',
+    headline: 'Your request is temporarily on hold.',
+    body: 'The repair is currently waiting on parts or scheduling. Your property manager will follow up shortly.',
+  },
+}
+
+export async function sendTenantStatusUpdateEmail(
+  tenantEmail: string,
+  tenantName: string | null,
+  ticketTitle: string,
+  newStatus: TenantStatusUpdateType,
+  propertyName?: string | null
+): Promise<boolean> {
+  const copy = STATUS_COPY[newStatus]
+  const greeting = tenantName ? `Hi ${tenantName},` : 'Hello,'
+  try {
+    const { error } = await resend.emails.send({
+      from: 'Maintena <onboarding@resend.dev>',
+      to: tenantEmail,
+      subject: copy.subject,
+      html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f9fafb; padding: 40px 20px; margin: 0;">
+  <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid #f3f4f6;">
+      <div style="display: inline-flex; align-items: center; gap: 8px;">
+        <div style="width: 24px; height: 24px; background-color: #4f46e5; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+          <span style="color: white; font-size: 12px; font-weight: bold;">M</span>
+        </div>
+        <span style="font-size: 14px; font-weight: 600; color: #111827;">Maintena</span>
+      </div>
+    </div>
+    <div style="padding: 28px 24px;">
+      <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;">${greeting}</p>
+      <p style="font-size: 15px; color: #111827; margin: 0 0 8px 0; font-weight: 500;">${copy.headline}</p>
+      <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;">
+        <p style="font-size: 13px; color: #374151; margin: 0 0 6px 0;"><strong>Request:</strong> ${ticketTitle}</p>
+        ${propertyName ? `<p style="font-size: 13px; color: #374151; margin: 0;"><strong>Property:</strong> ${propertyName}</p>` : ''}
+      </div>
+      <p style="font-size: 13px; color: #6b7280; margin: 0;">${copy.body}</p>
+    </div>
+    <div style="padding: 14px 24px; background-color: #f9fafb; border-top: 1px solid #f3f4f6;">
+      <p style="font-size: 11px; color: #9ca3af; margin: 0;">© ${new Date().getFullYear()} Maintena · The AI operations layer for property maintenance.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    })
+    return !error
+  } catch {
+    return false
+  }
+}

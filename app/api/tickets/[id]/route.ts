@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession, logActivity } from '@/lib/auth'
-import { sql } from '@/lib/db'
+import { sql, type MaintenanceTicket } from '@/lib/db'
+import { sendTenantVendorAssignedEmail, sendTenantStatusUpdateEmail } from '@/lib/email'
 
 export async function GET(
   _request: NextRequest,
@@ -87,10 +88,10 @@ export async function PATCH(
 
     const { id } = await params
 
-    const existing = await sql`
+    const existing = (await sql`
       SELECT * FROM maintenance_tickets
       WHERE id = ${id} AND organization_id = ${user.organization_id}
-    `
+    `) as unknown as MaintenanceTicket[]
 
     if (existing.length === 0) {
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 })
@@ -115,7 +116,7 @@ export async function PATCH(
     const assignedAt = assigned_vendor_id && !current.assigned_vendor_id ? new Date().toISOString() : current.assigned_at
     const completedAt = status === 'completed' && current.status !== 'completed' ? new Date().toISOString() : current.completed_at
 
-    const updated = await sql`
+    const updated = (await sql`
       UPDATE maintenance_tickets
       SET
         status = ${newStatus},
@@ -132,7 +133,7 @@ export async function PATCH(
       WHERE id = ${id}
         AND organization_id = ${user.organization_id}
       RETURNING *
-    `
+    `) as unknown as MaintenanceTicket[]
 
     if (status && status !== current.status) {
       await logActivity({
@@ -145,7 +146,9 @@ export async function PATCH(
       })
     }
 
-    if (assigned_vendor_id && assigned_vendor_id !== current.assigned_vendor_id) {
+    const vendorChanged = assigned_vendor_id && assigned_vendor_id !== current.assigned_vendor_id
+
+    if (vendorChanged) {
       await logActivity({
         organizationId: user.organization_id,
         ticketId: id,
@@ -154,6 +157,43 @@ export async function PATCH(
         description: `Vendor assigned to ticket`,
         metadata: { vendor_id: assigned_vendor_id },
       })
+
+      // Notify tenant that a vendor has been assigned
+      const tenantEmail = updated[0].tenant_email ?? current.tenant_email
+      if (tenantEmail) {
+        const vendorRows = (await sql`SELECT name FROM vendors WHERE id = ${assigned_vendor_id}`) as unknown as { name: string }[]
+        const vendorName = vendorRows[0]?.name ?? 'a vendor'
+        const propertyRows = current.property_id
+          ? (await sql`SELECT name FROM properties WHERE id = ${current.property_id}`) as unknown as { name: string }[]
+          : []
+        await sendTenantVendorAssignedEmail(
+          tenantEmail,
+          updated[0].tenant_name ?? current.tenant_name,
+          updated[0].title ?? current.title,
+          vendorName,
+          propertyRows[0]?.name ?? null,
+        )
+      }
+    }
+
+    // Notify tenant on meaningful status transitions (skip if we already sent a vendor-assigned email)
+    const statusChanged = status && status !== current.status
+    const notifiableStatus = ['in_progress', 'completed', 'waiting'] as const
+    type NotifiableStatus = typeof notifiableStatus[number]
+    if (!vendorChanged && statusChanged && (notifiableStatus as readonly string[]).includes(status)) {
+      const tenantEmail = updated[0].tenant_email ?? current.tenant_email
+      if (tenantEmail) {
+        const propertyRows = current.property_id
+          ? (await sql`SELECT name FROM properties WHERE id = ${current.property_id}`) as unknown as { name: string }[]
+          : []
+        await sendTenantStatusUpdateEmail(
+          tenantEmail,
+          updated[0].tenant_name ?? current.tenant_name,
+          updated[0].title ?? current.title,
+          status as NotifiableStatus,
+          propertyRows[0]?.name ?? null,
+        )
+      }
     }
 
     return NextResponse.json(updated[0])
