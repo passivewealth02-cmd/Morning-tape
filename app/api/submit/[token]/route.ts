@@ -41,6 +41,8 @@ export async function POST(
     const tenantPhone = clamp(body.tenant_phone, 50) || null
     const propertyHint = clamp(body.property_hint, 200)
     const unitHint = clamp(body.unit_number, 50)
+    const requestedPropertyId = clamp(body.property_id, 100)
+    const requestedUnitId = clamp(body.unit_id, 100)
     const rawUrgency = clamp(body.urgency, 20)
     const urgency: Urgency = (URGENCIES as readonly string[]).includes(rawUrgency)
       ? (rawUrgency as Urgency)
@@ -50,10 +52,32 @@ export async function POST(
       return NextResponse.json({ error: 'Please include a title and a description.' }, { status: 400 })
     }
 
-    // Best-effort property/unit matching from the free-text hints (same approach as email intake)
     let propertyId: string | null = null
     let unitId: string | null = null
-    if (propertyHint) {
+    let resolvedUnitNumber = ''
+
+    // Preferred path: exact IDs chosen from a dropdown or encoded in a QR link.
+    // Always validate they belong to this organization to prevent cross-tenant writes.
+    if (requestedPropertyId) {
+      const owned = (await sql`
+        SELECT id FROM properties WHERE id = ${requestedPropertyId} AND organization_id = ${org.id} LIMIT 1
+      `) as unknown as Array<{ id: string }>
+      if (owned.length > 0) {
+        propertyId = owned[0].id
+        if (requestedUnitId) {
+          const u = (await sql`
+            SELECT id, unit_number FROM units WHERE id = ${requestedUnitId} AND property_id = ${propertyId} LIMIT 1
+          `) as unknown as Array<{ id: string; unit_number: string }>
+          if (u.length > 0) {
+            unitId = u[0].id
+            resolvedUnitNumber = u[0].unit_number
+          }
+        }
+      }
+    }
+
+    // Fallback: best-effort free-text matching (legacy hints / "not listed" entries).
+    if (!propertyId && propertyHint) {
       const hint = `%${propertyHint.toLowerCase()}%`
       const props = (await sql`
         SELECT * FROM properties
@@ -65,21 +89,26 @@ export async function POST(
         propertyId = props[0].id
         if (unitHint) {
           const unitMatch = (await sql`
-            SELECT id FROM units
+            SELECT id, unit_number FROM units
             WHERE property_id = ${propertyId}
               AND LOWER(unit_number) = LOWER(${unitHint})
             LIMIT 1
-          `) as unknown as Array<{ id: string }>
-          if (unitMatch.length > 0) unitId = unitMatch[0].id
+          `) as unknown as Array<{ id: string; unit_number: string }>
+          if (unitMatch.length > 0) {
+            unitId = unitMatch[0].id
+            resolvedUnitNumber = unitMatch[0].unit_number
+          }
         }
       }
     }
 
-    // Keep the tenant-provided location in the description when we couldn't match a property
+    // Keep the tenant-provided location in the description when we couldn't match a property.
     const locationNote =
       !propertyId && (propertyHint || unitHint)
         ? `\n\nLocation provided by tenant: ${[propertyHint, unitHint && `Unit ${unitHint}`].filter(Boolean).join(', ')}`
-        : ''
+        : !unitId && unitHint
+          ? `\n\nUnit provided by tenant: ${unitHint}`
+          : ''
 
     const ticket = await createTicketWithAI({
       organization_id: org.id,
@@ -94,7 +123,10 @@ export async function POST(
       source: 'web',
     })
 
-    return NextResponse.json({ success: true, ticket_id: ticket.id }, { status: 201 })
+    return NextResponse.json(
+      { success: true, ticket_id: ticket.id, unit_number: resolvedUnitNumber || unitHint || null },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Tenant submission error:', error)
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })

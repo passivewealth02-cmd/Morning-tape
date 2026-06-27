@@ -3,7 +3,7 @@ import { sql } from '@/lib/db'
 import type { Property, Unit } from '@/lib/db'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, MapPin } from 'lucide-react'
+import { ArrowLeft, MapPin, QrCode } from 'lucide-react'
 import { UnitManager } from '@/components/properties/unit-manager'
 
 export default async function PropertyDetailPage({
@@ -33,13 +33,22 @@ export default async function PropertyDetailPage({
         Back to properties
       </Link>
 
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">{property.name}</h1>
-        <p className="text-sm text-gray-500 mt-0.5 inline-flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-gray-400" />
-          {property.address}
-          {(property.city || property.province) && ` · ${[property.city, property.province].filter(Boolean).join(', ')}`}
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">{property.name}</h1>
+          <p className="text-sm text-gray-500 mt-0.5 inline-flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+            {property.address}
+            {(property.city || property.province) && ` · ${[property.city, property.province].filter(Boolean).join(', ')}`}
+          </p>
+        </div>
+        <Link
+          href={`/dashboard/properties/${property.id}/qr`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium border border-gray-200 hover:border-indigo-200 hover:bg-indigo-50 text-gray-700 px-3 py-2 rounded-lg transition-colors shrink-0"
+        >
+          <QrCode className="w-4 h-4" />
+          QR codes
+        </Link>
       </div>
 
       <UnitManager propertyId={property.id} units={units} />
