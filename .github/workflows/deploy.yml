@@ -3,6 +3,10 @@ name: Deploy to Vercel (Production)
 # Deploys main to the existing Vercel project on every push.
 # Replaces the broken Vercel Git webhook — GitHub Actions runs on
 # GitHub's infrastructure and can reach Vercel directly.
+#
+# We let Vercel build on its own infrastructure (no --prebuilt) so the
+# project's configured environment variables (DATABASE_URL, etc.) are
+# available at build time — exactly like the native Git integration.
 
 on:
   push:
@@ -20,25 +24,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Pull Vercel project settings
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build project
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to production
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to production (Vercel builds remotely)
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
