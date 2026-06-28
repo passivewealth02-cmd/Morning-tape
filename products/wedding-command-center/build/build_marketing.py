@@ -196,50 +196,56 @@ def draw_dashboard_in_screen(canvas, screen):
     ch_h = sy1 - ch_y0 - 18
     chart_w = (sw - 22 * 2 - gap) // 2
 
-    # Donut: budget breakdown
-    dbox = (gx, ch_y0, gx + chart_w, ch_y0 + ch_h)
-    d.rounded_rectangle(dbox, radius=10, fill=WHITE, outline=(225, 218, 205), width=2)
-    d.text((dbox[0] + 16, dbox[1] + 14), "BUDGET BREAKDOWN", font=fs(20), fill=ACCENT, anchor="lt")
-    dcx, dcy = dbox[0] + 105, (dbox[1] + dbox[3]) // 2 + 12
-    rr = 78
-    segs = [(27, PRIMARY), (20, ACCENT), (16, HIGHLIGHT), (12, SURFACE),
-            (10, GOLD), (15, TEXT_MUTED)]
-    ang = -90
-    for pct, col in segs:
-        s = pct * 3.6
-        d.pieslice((dcx-rr, dcy-rr, dcx+rr, dcy+rr), ang, ang+s, fill=col)
-        ang += s
-    d.ellipse((dcx-34, dcy-34, dcx+34, dcy+34), fill=WHITE)
-    d.text((dcx, dcy-6), "$48K", font=fserif(20), fill=PRIMARY, anchor="mm")
-    d.text((dcx, dcy+14), "SPENT", font=fs(10), fill=TEXT_MUTED, anchor="mm")
-    legend = [("Venue", PRIMARY), ("Catering", ACCENT), ("Photo", HIGHLIGHT),
-              ("Florals", SURFACE), ("Music", GOLD), ("Other", TEXT_MUTED)]
-    lx, ly = dcx + rr + 28, dcy - rr + 4
-    for i, (lab, col) in enumerate(legend):
-        yy = ly + i * 24
-        d.rounded_rectangle((lx, yy, lx+16, yy+16), radius=3, fill=col)
-        d.text((lx+26, yy+8), lab, font=fs(16), fill=TEXT, anchor="lm")
+    def donut_card(box, title, segs, center_top, center_bot, legend):
+        """Donut + legend that scales to fill the card and centers as a block."""
+        d.rounded_rectangle(box, radius=10, fill=WHITE, outline=(225, 218, 205), width=2)
+        d.text((box[0] + 16, box[1] + 14), title, font=fs(20), fill=ACCENT, anchor="lt")
+        title_h = 50
+        avail_h = (box[3] - box[1]) - title_h
+        card_w = box[2] - box[0]
+        # radius adapts to card; capped so legend always fits to the right
+        rr = int(max(60, min(avail_h * 0.40, card_w * 0.20)))
+        dcx = box[0] + 34 + rr
+        dcy = box[1] + title_h + avail_h // 2
+        ang = -90
+        for pct, col in segs:
+            s = pct * 3.6
+            d.pieslice((dcx - rr, dcy - rr, dcx + rr, dcy + rr), ang, ang + s, fill=col)
+            ang += s
+        hole = int(rr * 0.46)
+        d.ellipse((dcx - hole, dcy - hole, dcx + hole, dcy + hole), fill=WHITE)
+        d.text((dcx, dcy - hole * 0.28), center_top, font=fserif(int(rr * 0.30)),
+               fill=PRIMARY, anchor="mm")
+        d.text((dcx, dcy + hole * 0.42), center_bot, font=fs(int(rr * 0.16)),
+               fill=TEXT_MUTED, anchor="mm")
+        # legend — vertically centered block to the right of the donut
+        line_h = max(34, int(avail_h / (len(legend) + 1)))
+        sw_box = 22
+        lx = dcx + rr + 40
+        block_h = line_h * len(legend)
+        ly = dcy - block_h // 2 + (line_h - sw_box) // 2
+        for i, (lab, col) in enumerate(legend):
+            yy = ly + i * line_h
+            d.rounded_rectangle((lx, yy, lx + sw_box, yy + sw_box), radius=4, fill=col)
+            d.text((lx + sw_box + 14, yy + sw_box // 2), lab, font=fs(20), fill=TEXT, anchor="lm")
 
-    # RSVP donut (right)
-    bbox = (gx + chart_w + gap, ch_y0, gx + 2*chart_w + gap, ch_y0 + ch_h)
-    d.rounded_rectangle(bbox, radius=10, fill=WHITE, outline=(225, 218, 205), width=2)
-    d.text((bbox[0] + 16, bbox[1] + 14), "RSVP PROGRESS", font=fs(20), fill=ACCENT, anchor="lt")
-    rcx, rcy = bbox[0] + 105, (bbox[1] + bbox[3]) // 2 + 12
-    segs2 = [(74, HIGHLIGHT), (12, DANGER), (14, SURFACE)]
-    ang = -90
-    for pct, col in segs2:
-        s = pct * 3.6
-        d.pieslice((rcx-rr, rcy-rr, rcx+rr, rcy+rr), ang, ang+s, fill=col)
-        ang += s
-    d.ellipse((rcx-34, rcy-34, rcx+34, rcy+34), fill=WHITE)
-    d.text((rcx, rcy-6), "74%", font=fserif(20), fill=PRIMARY, anchor="mm")
-    d.text((rcx, rcy+14), "REPLIED", font=fs(10), fill=TEXT_MUTED, anchor="mm")
-    legend2 = [("Accepted 104", HIGHLIGHT), ("Declined 16", DANGER), ("Pending 20", SURFACE)]
-    lx, ly = rcx + rr + 28, rcy - rr + 16
-    for i, (lab, col) in enumerate(legend2):
-        yy = ly + i * 30
-        d.rounded_rectangle((lx, yy, lx+16, yy+16), radius=3, fill=col)
-        d.text((lx+26, yy+8), lab, font=fs(16), fill=TEXT, anchor="lm")
+    dbox = (gx, ch_y0, gx + chart_w, ch_y0 + ch_h)
+    donut_card(
+        dbox, "BUDGET BREAKDOWN",
+        [(27, PRIMARY), (20, ACCENT), (16, HIGHLIGHT), (12, SURFACE),
+         (10, GOLD), (15, TEXT_MUTED)],
+        "$48K", "SPENT",
+        [("Venue 27%", PRIMARY), ("Catering 20%", ACCENT),
+         ("Photo 16%", HIGHLIGHT), ("Florals 12%", SURFACE),
+         ("Music 10%", GOLD), ("Other 15%", TEXT_MUTED)])
+
+    bbox = (gx + chart_w + gap, ch_y0, gx + 2 * chart_w + gap, ch_y0 + ch_h)
+    donut_card(
+        bbox, "RSVP PROGRESS",
+        [(74, HIGHLIGHT), (12, DANGER), (14, SURFACE)],
+        "74%", "REPLIED",
+        [("Accepted 104", HIGHLIGHT), ("Declined 16", DANGER),
+         ("Pending 20", SURFACE)])
 
     canvas.alpha_composite(overlay)
 
