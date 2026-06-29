@@ -68,6 +68,25 @@ BOX = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 # ---------------------------------------------------------------------------
 # Style registration
 # ---------------------------------------------------------------------------
+
+def clean_labels(pct=False, val=False):
+    """Concise data labels: never show series/category text (it collides on
+    multi-slice pies). Percentages or values only."""
+    dl = DataLabelList()
+    dl.showSerName = False
+    dl.showCatName = False
+    dl.showLegendKey = False
+    dl.showBubbleSize = False
+    dl.showVal = val
+    dl.showPercent = pct
+    return dl
+
+
+def no_labels():
+    """Suppress all on-chart labels (legend carries meaning)."""
+    return clean_labels(pct=False, val=False)
+
+
 def register_styles(wb: Workbook) -> None:
     styles = {
         "title": NamedStyle(
@@ -641,7 +660,7 @@ def build_budget(wb: Workbook) -> None:
     pie.add_data(Reference(ws, min_col=3, min_row=4, max_row=end),
                  titles_from_data=True)
     pie.set_categories(Reference(ws, min_col=1, min_row=start, max_row=end))
-    pie.dataLabels = DataLabelList(showPercent=True)
+    pie.dataLabels = no_labels()
     ws.add_chart(pie, "A20")
 
     bar = BarChart()
@@ -1277,7 +1296,7 @@ def build_dashboard(wb: Workbook) -> None:
     donut.add_data(Reference(wb["Budget"], min_col=3, min_row=4, max_row=end),
                    titles_from_data=True)
     donut.set_categories(Reference(wb["Budget"], min_col=1, min_row=5, max_row=end))
-    donut.dataLabels = DataLabelList(showPercent=True)
+    donut.dataLabels = no_labels()
     ws.add_chart(donut, "B14")
 
     # Bar: Budget vs Actual
@@ -1290,7 +1309,7 @@ def build_dashboard(wb: Workbook) -> None:
     bar.add_data(Reference(wb["Budget"], min_col=3, min_row=4, max_row=end),
                  titles_from_data=True)
     bar.set_categories(Reference(wb["Budget"], min_col=1, min_row=5, max_row=end))
-    ws.add_chart(bar, "F14")
+    ws.add_chart(bar, "H14")
 
     # Footer
     ws.row_dimensions[34].height = 26

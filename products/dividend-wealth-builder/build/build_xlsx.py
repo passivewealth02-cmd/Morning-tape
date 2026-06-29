@@ -55,6 +55,25 @@ BOX = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 # ---------------------------------------------------------------------------
 # Style helpers
 # ---------------------------------------------------------------------------
+
+def clean_labels(pct=False, val=False):
+    """Concise data labels: never show series/category text (it collides on
+    multi-slice pies). Percentages or values only."""
+    dl = DataLabelList()
+    dl.showSerName = False
+    dl.showCatName = False
+    dl.showLegendKey = False
+    dl.showBubbleSize = False
+    dl.showVal = val
+    dl.showPercent = pct
+    return dl
+
+
+def no_labels():
+    """Suppress all on-chart labels (legend carries meaning)."""
+    return clean_labels(pct=False, val=False)
+
+
 def register_styles(wb: Workbook) -> None:
     styles = {
         "title": NamedStyle(
@@ -699,7 +718,7 @@ def build_dashboard(wb: Workbook) -> None:
     pie.set_categories(labels)
     pie.height = 9
     pie.width = 13
-    pie.dataLabels = DataLabelList(showPercent=True)
+    pie.dataLabels = clean_labels(pct=True)
     ws.add_chart(pie, "B12")
 
     # 2) Monthly Dividend Bar

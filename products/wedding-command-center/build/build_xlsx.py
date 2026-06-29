@@ -237,6 +237,25 @@ def add_dv(ws, rng: str, list_name: str) -> None:
     dv.add(rng)
 
 
+def clean_labels(pct=False, val=False):
+    """Concise data labels: never show series/category text (that collides on
+    multi-slice pies). Percentages or values only, or nothing at all."""
+    dl = DataLabelList()
+    dl.showSerName = False
+    dl.showCatName = False
+    dl.showLegendKey = False
+    dl.showBubbleSize = False
+    dl.showVal = val
+    dl.showPercent = pct
+    return dl
+
+
+def no_labels():
+    """Explicitly suppress all data labels (legend carries the meaning).
+    Used on the many-slice budget donuts where any on-chart text overlaps."""
+    return clean_labels(pct=False, val=False)
+
+
 def table_headers(ws, row: int, headers: list[str], start_col: int = 1) -> None:
     for i, h in enumerate(headers):
         ws.cell(row=row, column=start_col + i, value=h).style = "th"
@@ -611,7 +630,7 @@ def build_budget(wb):
     pie = DoughnutChart(); pie.title = "Category Spending"; pie.height = 9; pie.width = 14
     pie.add_data(Reference(ws, min_col=3, min_row=4, max_row=end), titles_from_data=True)
     pie.set_categories(Reference(ws, min_col=1, min_row=start, max_row=end))
-    pie.dataLabels = DataLabelList(showPercent=True)
+    pie.dataLabels = no_labels()   # 21 slices — legend carries labels
     ws.add_chart(pie, "A28")
     bar = BarChart(); bar.type = "col"; bar.title = "Budget vs Actual"; bar.height = 9; bar.width = 18
     bar.add_data(Reference(ws, min_col=2, min_row=4, max_row=end), titles_from_data=True)
@@ -981,7 +1000,7 @@ def build_rsvp(wb):
     donut = DoughnutChart(); donut.title = "RSVP Progress"; donut.height = 7; donut.width = 12
     donut.add_data(Reference(ws, min_col=3, min_row=15, max_row=18), titles_from_data=True)
     donut.set_categories(Reference(ws, min_col=2, min_row=16, max_row=18))
-    donut.dataLabels = DataLabelList(showVal=True)
+    donut.dataLabels = clean_labels(pct=True)
     ws.add_chart(donut, "H4")
 
     bar = BarChart(); bar.type = "col"; bar.title = "Meal Selections"; bar.height = 7; bar.width = 12
@@ -1338,7 +1357,7 @@ def build_dashboard(wb):
     donut = DoughnutChart(); donut.title = "Budget Breakdown"; donut.height = 8.5; donut.width = 12
     donut.add_data(Reference(wb["Budget"], min_col=3, min_row=4, max_row=bend), titles_from_data=True)
     donut.set_categories(Reference(wb["Budget"], min_col=1, min_row=5, max_row=bend))
-    donut.dataLabels = DataLabelList(showPercent=True)
+    donut.dataLabels = no_labels()   # 21 slices — legend carries labels
     ws.add_chart(donut, "B15")
 
     bar = BarChart(); bar.type = "col"; bar.title = "Budget vs Actual"; bar.height = 8.5; bar.width = 12
@@ -1351,7 +1370,7 @@ def build_dashboard(wb):
     donut2 = DoughnutChart(); donut2.title = "RSVP Progress"; donut2.height = 8.5; donut2.width = 12
     donut2.add_data(Reference(wb["RSVP"], min_col=3, min_row=15, max_row=18), titles_from_data=True)
     donut2.set_categories(Reference(wb["RSVP"], min_col=2, min_row=16, max_row=18))
-    donut2.dataLabels = DataLabelList(showVal=True)
+    donut2.dataLabels = clean_labels(pct=True)
     ws.add_chart(donut2, "B35")
 
     # Readiness scores bar from Analytics
