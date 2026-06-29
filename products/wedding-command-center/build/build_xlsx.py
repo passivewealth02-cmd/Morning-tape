@@ -23,6 +23,7 @@ from openpyxl.styles import Alignment, Border, Font, NamedStyle, PatternFill, Si
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.worksheet.formula import ArrayFormula
 
 # ---------------------------------------------------------------------------
 # Brand tokens (+ luxury extensions for the flagship)
@@ -347,6 +348,14 @@ def build_settings(wb):
             ws.cell(row=start2 + 1 + ri, column=ci, value=val).style = "td_left"
         wb.defined_names[name] = DefinedName(
             name, attr_text=f"Settings!${col}${start2+1}:${col}${start2 + len(data)}")
+
+    # Table list (drives the seating dropdowns on Guests + Seating)
+    NUM_TABLE_OPTIONS = 20
+    ws.cell(row=16, column=2, value="Tables (for seating)").style = "th"
+    for i in range(NUM_TABLE_OPTIONS):
+        ws.cell(row=17 + i, column=2, value=f"Table {i + 1}").style = "td_left"
+    wb.defined_names["TableList"] = DefinedName(
+        "TableList", attr_text=f"Settings!$B$17:$B${16 + NUM_TABLE_OPTIONS}")
 
 
 # ===========================================================================
@@ -895,25 +904,26 @@ def build_contracts(wb):
 def build_guest_crm(wb):
     ws = wb.create_sheet("Guests")
     ws.sheet_view.showGridLines = False
-    set_widths(ws, [22, 16, 26, 22, 14, 10, 14, 12, 14, 10, 12, 14, 12, 12, 20])
-    luxe_header(ws, "O", "👥  GUEST CRM",
-                "The master guest database — RSVP, meals, gifts, logistics.")
+    set_widths(ws, [22, 16, 26, 22, 14, 10, 14, 12, 14, 10, 12, 14, 12, 12, 20, 14])
+    luxe_header(ws, "P", "👥  GUEST CRM",
+                "The master guest database — RSVP, meals, gifts, logistics. "
+                "Assign each guest a table in the last column.")
     table_headers(ws, 4, ["Guest", "Family", "Address", "Email", "Phone",
                           "Invited", "RSVP", "# Seats", "Meal", "Kids",
-                          "Gift", "Thank-You", "Hotel", "Transport", "Notes"])
+                          "Gift", "Thank-You", "Hotel", "Transport", "Notes", "Table"])
     rows = [
-        ("Linda Bennett", "Bennett", "12 Rose Ln, Springfield", "linda@ex.com", "(555) 412-7833", "Yes", "Accepted", 2, "Beef", "No", "Yes", "No", "No", "No", "Mother of bride"),
-        ("Robert Bennett", "Bennett", "12 Rose Ln, Springfield", "rob@ex.com", "(555) 412-7834", "Yes", "Accepted", 2, "Fish", "No", "Yes", "No", "No", "No", "Father of bride"),
-        ("Daniel Carter", "Carter", "88 Oak St, Rivertown", "dan@ex.com", "(555) 901-2271", "Yes", "Accepted", 1, "Chicken", "No", "No", "No", "Yes", "Yes", "Best man"),
-        ("Emily Bennett", "Bennett", "5 Lake Dr, Springfield", "emily@ex.com", "(555) 412-7799", "Yes", "Accepted", 1, "Vegetarian", "No", "Yes", "No", "No", "No", "Maid of honor"),
-        ("Sophia & Marc Lane", "Lane", "240 Hill Rd, Metro", "sophia@ex.com", "(555) 200-8841", "Yes", "Accepted", 2, "Beef", "No", "No", "No", "Yes", "No", "Planner + guest"),
-        ("Grandma Rose", "Bennett", "12 Rose Ln, Springfield", "—", "(555) 412-1900", "Yes", "Accepted", 1, "Fish", "No", "Yes", "No", "No", "Yes", "Needs accessible seating"),
-        ("The Hartleys", "Hartley", "31 Pine Ave, Metro", "hartley@ex.com", "(555) 388-2210", "Yes", "Pending", 4, "None", "Yes", "No", "No", "No", "No", "Family of 4, 2 kids"),
-        ("Aiden Brooks", "Brooks", "210 North Ave, Rivertown", "aiden@ex.com", "(555) 901-2272", "Yes", "Declined", 0, "None", "No", "No", "No", "No", "No", "Out of town"),
-        ("Maya Rivera", "Rivera", "1500 River Rd, Metro", "maya@ex.com", "(555) 412-7000", "Yes", "Accepted", 2, "Chicken", "No", "No", "No", "Yes", "No", "College friend"),
-        ("The Patels", "Patel", "77 Cedar Blvd, Metro", "patel@ex.com", "(555) 412-9032", "Yes", "Accepted", 3, "Vegan", "Yes", "No", "No", "Yes", "Yes", "1 child, vegan family"),
-        ("Olivia Reed", "Reed", "9 Maple Ct, Springfield", "olivia@ex.com", "(555) 200-2244", "Yes", "Pending", 1, "None", "No", "No", "No", "No", "No", "Work friend"),
-        ("James Sr. & Carol Carter", "Carter", "88 Oak St, Rivertown", "carol@ex.com", "(555) 901-0000", "Yes", "Accepted", 2, "Beef", "No", "Yes", "No", "Yes", "Yes", "Parents of groom"),
+        ("Linda Bennett", "Bennett", "12 Rose Ln, Springfield", "linda@ex.com", "(555) 412-7833", "Yes", "Accepted", 2, "Beef", "No", "Yes", "No", "No", "No", "Mother of bride", "Table 2"),
+        ("Robert Bennett", "Bennett", "12 Rose Ln, Springfield", "rob@ex.com", "(555) 412-7834", "Yes", "Accepted", 2, "Fish", "No", "Yes", "No", "No", "No", "Father of bride", "Table 2"),
+        ("Daniel Carter", "Carter", "88 Oak St, Rivertown", "dan@ex.com", "(555) 901-2271", "Yes", "Accepted", 1, "Chicken", "No", "No", "No", "Yes", "Yes", "Best man", "Table 1"),
+        ("Emily Bennett", "Bennett", "5 Lake Dr, Springfield", "emily@ex.com", "(555) 412-7799", "Yes", "Accepted", 1, "Vegetarian", "No", "Yes", "No", "No", "No", "Maid of honor", "Table 1"),
+        ("Sophia & Marc Lane", "Lane", "240 Hill Rd, Metro", "sophia@ex.com", "(555) 200-8841", "Yes", "Accepted", 2, "Beef", "No", "No", "No", "Yes", "No", "Planner + guest", "Table 5"),
+        ("Grandma Rose", "Bennett", "12 Rose Ln, Springfield", "—", "(555) 412-1900", "Yes", "Accepted", 1, "Fish", "No", "Yes", "No", "No", "Yes", "Needs accessible seating", "Table 2"),
+        ("The Hartleys", "Hartley", "31 Pine Ave, Metro", "hartley@ex.com", "(555) 388-2210", "Yes", "Pending", 4, "None", "Yes", "No", "No", "No", "No", "Family of 4, 2 kids", "Table 7"),
+        ("Aiden Brooks", "Brooks", "210 North Ave, Rivertown", "aiden@ex.com", "(555) 901-2272", "Yes", "Declined", 0, "None", "No", "No", "No", "No", "No", "Out of town", ""),
+        ("Maya Rivera", "Rivera", "1500 River Rd, Metro", "maya@ex.com", "(555) 412-7000", "Yes", "Accepted", 2, "Chicken", "No", "No", "No", "Yes", "No", "College friend", "Table 4"),
+        ("The Patels", "Patel", "77 Cedar Blvd, Metro", "patel@ex.com", "(555) 412-9032", "Yes", "Accepted", 3, "Vegan", "Yes", "No", "No", "Yes", "Yes", "1 child, vegan family", "Table 6"),
+        ("Olivia Reed", "Reed", "9 Maple Ct, Springfield", "olivia@ex.com", "(555) 200-2244", "Yes", "Pending", 1, "None", "No", "No", "No", "No", "No", "Work friend", ""),
+        ("James Sr. & Carol Carter", "Carter", "88 Oak St, Rivertown", "carol@ex.com", "(555) 901-0000", "Yes", "Accepted", 2, "Beef", "No", "Yes", "No", "Yes", "Yes", "Parents of groom", "Table 3"),
     ]
     start = 5
     end = start + 200 - 1
@@ -921,12 +931,16 @@ def build_guest_crm(wb):
         r = start + i
         for ci, val in enumerate(row, 1):
             ws.cell(row=r, column=ci, value=val)
-    style_rows(ws, start, end, 15, text_left={1, 2, 3, 4, 15}, ints={8})
+    style_rows(ws, start, end, 16, text_left={1, 2, 3, 4, 15}, ints={8})
     add_dv(ws, f"F{start}:F{end}", "YesNoList")
     add_dv(ws, f"G{start}:G{end}", "RsvpList")
     add_dv(ws, f"I{start}:I{end}", "MealList")
     for col in ("J", "K", "L", "M", "N"):
         add_dv(ws, f"{col}{start}:{col}{end}", "YesNoList")
+    add_dv(ws, f"P{start}:P{end}", "TableList")
+    # Highlight the Table assignment column so it reads as the action column
+    for r in range(start, end + 1):
+        ws.cell(row=r, column=16).font = Font(bold=True, color=PRIMARY)
     ws.conditional_formatting.add(
         f"G{start}:G{end}",
         CellIsRule(operator="equal", formula=['"Accepted"'], fill=fill("E3F8EF")))
@@ -942,6 +956,7 @@ def build_guest_crm(wb):
     wb.defined_names["GuestInvited"] = DefinedName("GuestInvited", attr_text=f"Guests!$F${start}:$F${end}")
     wb.defined_names["GuestMeal"] = DefinedName("GuestMeal", attr_text=f"Guests!$I${start}:$I${end}")
     wb.defined_names["GuestThankYou"] = DefinedName("GuestThankYou", attr_text=f"Guests!$L${start}:$L${end}")
+    wb.defined_names["GuestTable"] = DefinedName("GuestTable", attr_text=f"Guests!$P${start}:$P${end}")
     ws.freeze_panes = "B5"
 
 
@@ -1015,59 +1030,108 @@ def build_rsvp(wb):
 def build_seating(wb):
     ws = wb.create_sheet("Seating")
     ws.sheet_view.showGridLines = False
-    set_widths(ws, [12, 26, 12, 12, 14, 28])
-    luxe_header(ws, "F", "🪑  SEATING PLANNER",
-                "Assign tables with live capacity warnings and VIP flags.")
-    table_headers(ws, 4, ["Table", "Assigned Guests", "Seated", "Capacity",
-                          "Open", "VIP / Notes"])
-    sample = [
-        ("Table 1", "Bride, Groom, MOH, Best Man, parents (8)", 8, 10, "Head table — VIP"),
-        ("Table 2", "Bennett family", 9, 10, "VIP — grandparents"),
-        ("Table 3", "Carter family", 10, 10, ""),
-        ("Table 4", "College friends", 8, 10, ""),
-        ("Table 5", "Work friends", 7, 10, ""),
-        ("Table 6", "Patel + Rivera families", 10, 10, "1 highchair needed"),
-        ("Table 7", "Neighbors & family friends", 9, 10, ""),
-        ("Table 8", "Plus-ones & misc", 6, 10, ""),
-    ]
+    set_widths(ws, [12, 54, 10, 11, 9, 22, 3, 22, 16, 16])
+    luxe_header(ws, "J", "🪑  SEATING PLANNER",
+                "Assign guests to tables on the Guest tab — rosters here fill in "
+                "automatically. Pick a table in the Inspector to see who's seated.")
+
+    # --- Interactive table grid (rosters auto-update from Guest assignments) ---
+    table_headers(ws, 4, ["Table", "Assigned Guests (auto)", "Seated",
+                          "Capacity", "Open", "VIP / Notes"])
+    NUM_TABLES = 20
     start = 5
-    end = start + 30 - 1
-    for i, (tbl, guests, seated, cap, notes) in enumerate(sample):
+    end = start + NUM_TABLES - 1
+    notes = {1: "Head table — ★ VIP", 2: "VIP — grandparents",
+             6: "1 highchair needed"}
+    for i in range(NUM_TABLES):
         r = start + i
-        ws.cell(row=r, column=1, value=tbl)
-        ws.cell(row=r, column=2, value=guests)
-        ws.cell(row=r, column=3, value=seated)
-        ws.cell(row=r, column=4, value=cap)
-        ws.cell(row=r, column=6, value=notes)
-    for r in range(start, end + 1):
+        tname = f"Table {i + 1}"
+        ws.cell(row=r, column=1, value=tname)
+        # Auto roster: every guest whose Table = this table (array TEXTJOIN)
+        ws.cell(row=r, column=2).value = ArrayFormula(
+            f"B{r}", f'=TEXTJOIN(", ",TRUE,IF(GuestTable=$A{r},GuestName,""))')
+        # Seats used = sum of party sizes assigned to this table
+        ws.cell(row=r, column=3,
+                value=f'=SUMPRODUCT((GuestTable=$A{r})*IFERROR(GuestSeats,0))')
+        ws.cell(row=r, column=4, value=10)          # capacity (editable)
         ws.cell(row=r, column=5, value=f'=IF(D{r}="","",D{r}-IFERROR(C{r},0))')
+        ws.cell(row=r, column=6, value=notes.get(i + 1, ""))
+
     style_rows(ws, start, end, 6, text_left={2, 6}, ints={3, 4, 5})
-    # Over capacity warning
+    for r in range(start, end + 1):
+        ws.cell(row=r, column=2).alignment = Alignment(
+            horizontal="left", vertical="center", wrap_text=True, indent=1)
+        ws.row_dimensions[r].height = 30
+    # Over-capacity (red), full (mint), VIP (gold)
     ws.conditional_formatting.add(
         f"A{start}:F{end}",
         FormulaRule(formula=[f'AND($C{start}<>"",$C{start}>$D{start})'], fill=fill("FBE6E6")))
-    # Full table mint
     ws.conditional_formatting.add(
         f"E{start}:E{end}",
         CellIsRule(operator="equal", formula=["0"], fill=fill("E3F8EF")))
-    # VIP gold
     ws.conditional_formatting.add(
         f"A{start}:F{end}",
         FormulaRule(formula=[f'ISNUMBER(SEARCH("VIP",$F{start}))'], fill=fill("F6EFE0")))
 
-    # Capacity summary
-    merge_set(ws, "A38:F38", "CAPACITY SUMMARY", "section_gold")
+    # --- Capacity summary ---
+    sum_row = end + 2
+    merge_set(ws, f"A{sum_row}:F{sum_row}", "CAPACITY SUMMARY", "section_gold")
     sums = [
         ("Total Seated", f"=SUM(C{start}:C{end})"),
         ("Total Capacity", f"=SUM(D{start}:D{end})"),
         ("Seats Open", f"=SUM(E{start}:E{end})"),
         ("Accepted Guests (need seats)", '=SUMPRODUCT((GuestRsvp="Accepted")*IFERROR(GuestSeats,0))'),
+        ("Guests Not Yet Seated",
+         '=SUMPRODUCT((GuestRsvp="Accepted")*(GuestTable="")*IFERROR(GuestSeats,0))'),
     ]
     for i, (lab, fml) in enumerate(sums):
-        r = 39 + i
-        ws.cell(row=r, column=1, value=lab).style = "field_label"
-        c = ws.cell(row=r, column=2, value=fml); c.style = "field_value"
+        r = sum_row + 1 + i
+        merge_set(ws, f"A{r}:E{r}", lab, "field_label")
+        c = ws.cell(row=r, column=6, value=fml); c.style = "field_value"
         c.number_format = "0"; c.font = Font(bold=True, color=PRIMARY)
+
+    # --- TABLE INSPECTOR (the "click a table, see who's seated" panel) ---
+    merge_set(ws, "H4:J4", "🔎  TABLE INSPECTOR", "section_gold")
+    ws.cell(row=5, column=8, value="Select a Table").style = "field_label"
+    sel = ws.cell(row=5, column=9, value="Table 1"); sel.style = "input"
+    merge_set(ws, "I5:J5", "Table 1", "input")
+    add_dv(ws, "I5", "TableList")
+    wb.defined_names["InspectTable"] = DefinedName("InspectTable", attr_text="Seating!$I$5")
+
+    stat = [
+        ("Seated", '=SUMPRODUCT((GuestTable=InspectTable)*IFERROR(GuestSeats,0))', "0"),
+        ("Capacity", '=IFERROR(INDEX($D$5:$D$24,MATCH(InspectTable,$A$5:$A$24,0)),"")', "0"),
+        ("Open Seats", '=IF(I7="","",I7-I6)', "0"),
+    ]
+    for i, (lab, fml, fmt) in enumerate(stat):
+        r = 6 + i
+        ws.cell(row=r, column=8, value=lab).style = "field_label"
+        c = ws.cell(row=r, column=9, value=fml); c.style = "field_value"
+        c.number_format = fmt; c.font = Font(bold=True, color=PRIMARY)
+
+    merge_set(ws, "H10:J10", "WHO'S SITTING HERE", "section")
+    ws.merge_cells("H11:J16")
+    ws["H11"].value = ArrayFormula(
+        "H11",
+        '=TEXTJOIN(", ",TRUE,IF(GuestTable=InspectTable,'
+        'GuestName&" ("&IFERROR(GuestSeats,0)&")",""))')
+    ws["H11"].style = "field_value"
+    ws["H11"].alignment = Alignment(horizontal="left", vertical="top",
+                                    wrap_text=True, indent=1)
+    for rr in range(11, 17):
+        ws.row_dimensions[rr].height = 22
+
+    merge_set(ws, "H18:J18", "MEAL COUNTS AT THIS TABLE", "section")
+    meals = ["Beef", "Chicken", "Fish", "Vegetarian", "Vegan", "Kids"]
+    for i, meal in enumerate(meals):
+        r = 19 + i
+        ws.cell(row=r, column=8, value=meal).style = "field_label"
+        c = ws.cell(row=r, column=9,
+                    value=(f'=SUMPRODUCT((GuestTable=InspectTable)*'
+                           f'(GuestMeal="{meal}")*IFERROR(GuestSeats,0))'))
+        c.style = "field_value"; c.number_format = "0"
+        c.font = Font(bold=True, color=PRIMARY)
+
     ws.freeze_panes = "A5"
 
 

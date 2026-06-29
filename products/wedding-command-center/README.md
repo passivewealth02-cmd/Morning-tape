@@ -42,7 +42,9 @@ products/wedding-command-center/
 **People**
 11. Guest CRM (15-column master database, 200 rows)
 12. RSVP Dashboard (live counts + meal totals)
-13. Seating Planner (capacity warnings + VIP flags)
+13. Seating Planner (interactive: assign guests from the Guest tab, live
+auto-rosters per table, Table Inspector to see who's seated, capacity
+warnings + VIP flags)
 14. Bridal Party · 9. Vendor Comparison · 8. Vendor CRM · 10. Contracts
 
 **Planning**

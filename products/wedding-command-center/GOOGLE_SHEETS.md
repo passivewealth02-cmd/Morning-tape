@@ -135,14 +135,48 @@ Or with QUERY for the whole table at once:
    label count(I) 'Guests'",0)
 ```
 
-### Seating — capacity & open seats
+### Seating — interactive table assignment
+
+**Step 1 — assign guests.** On the **Guests** tab, column **P "Table"** has a
+dropdown (`TableList` = `Settings!B17:B36`, i.e. Table 1…Table 20). Pick a
+table for each guest. Add the named range `GuestTable → Guests!P5:P204`.
+
+**Step 2 — rosters auto-fill.** On the **Seating** tab, each table row pulls
+its guest list and seat count automatically:
 
 ```sheets
-E5 =ARRAYFORMULA(IF(D5:D34="","",D5:D34-IFERROR(C5:C34,0)))
+A5  Table 1   (typed Table 1…Table 20 down column A)
+B5  =TEXTJOIN(", ", TRUE, IF(GuestTable=$A5, GuestName, ""))   ← live roster
+C5  =SUMPRODUCT((GuestTable=$A5)*IFERROR(GuestSeats,0))        ← seats used
+D5  10                                                          ← capacity
+E5  =IF(D5="","",D5-C5)                                         ← open seats
 ```
 
-Over-capacity row warning: `=AND($C5<>"",$C5>$D5)` → red.
-VIP gold: `=ISNUMBER(SEARCH("VIP",$F5))`.
+(In Google Sheets the `TEXTJOIN(...IF(range...))` evaluates as an array
+automatically — no Ctrl+Shift+Enter needed.)
+
+Conditional formatting: over-capacity `=AND($C5<>"",$C5>$D5)` → red,
+full `=$E5=0` → mint, VIP `=ISNUMBER(SEARCH("VIP",$F5))` → gold.
+
+**Step 3 — Table Inspector (“see who’s sitting here”).** A dropdown cell
+`InspectTable` (`Seating!I5`, validated to `TableList`) drives a live panel:
+
+```sheets
+I6  =SUMPRODUCT((GuestTable=InspectTable)*IFERROR(GuestSeats,0))      ← seated
+I7  =IFERROR(INDEX($D$5:$D$24,MATCH(InspectTable,$A$5:$A$24,0)),"")   ← capacity
+I8  =IF(I7="","",I7-I6)                                               ← open
+H11 =TEXTJOIN(", ",TRUE,IF(GuestTable=InspectTable,
+        GuestName&" ("&IFERROR(GuestSeats,0)&")",""))                 ← roster
+I19 =SUMPRODUCT((GuestTable=InspectTable)*(GuestMeal="Beef")
+        *IFERROR(GuestSeats,0))   (repeat per meal type)              ← meal counts
+```
+
+Capacity summary also shows **Guests Not Yet Seated**:
+`=SUMPRODUCT((GuestRsvp="Accepted")*(GuestTable="")*IFERROR(GuestSeats,0))`.
+
+> Note: true hover-tooltips need a macro (breaks in Sheets/mobile). This
+> Inspector + the always-on roster column are the no-macro, cross-platform
+> equivalent — pick a table and instantly see exactly who's seated there.
 
 ### Analytics — readiness score
 
