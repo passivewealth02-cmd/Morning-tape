@@ -137,7 +137,7 @@ def kpi_callout(canvas, cx, cy, label, value, width=720, height=280, value_color
 # ---------------------------------------------------------------------------
 # Faux WCC dashboard inside a laptop / panel
 # ---------------------------------------------------------------------------
-def draw_dashboard_in_screen(canvas, screen):
+def draw_dashboard_in_screen(canvas, screen, charts=True):
     sx0, sy0, sx1, sy1 = screen
     sw = sx1 - sx0
     overlay = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
@@ -190,6 +190,16 @@ def draw_dashboard_in_screen(canvas, screen):
         x0 = gx + i * (cw + 6)
         d.rounded_rectangle((x0, nav_y, x0 + cw, nav_y + nav_h), radius=17, fill=PRIMARY)
         d.text((x0 + cw / 2, nav_y + nav_h / 2), name, font=fs(15), fill=WHITE, anchor="mm")
+
+    if not charts:
+        # Compact hero screen: KPIs + nav only, with a "more inside" strip.
+        note_y = nav_y + nav_h + 26
+        d.text((sx0 + sw / 2, note_y),
+               "+ 22 more planning tabs — Vision Board · Floral · Honeymoon · "
+               "Registry · Beauty · Music · and more",
+               font=fs(19, bold=False), fill=TEXT_MUTED, anchor="mt")
+        canvas.alpha_composite(overlay)
+        return
 
     # Two charts
     ch_y0 = nav_y + nav_h + 20
@@ -250,7 +260,7 @@ def draw_dashboard_in_screen(canvas, screen):
     canvas.alpha_composite(overlay)
 
 
-def draw_laptop(canvas, cx, cy, w=1500, h=900):
+def draw_laptop(canvas, cx, cy, w=1500, h=900, charts=True):
     overlay = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
     sbox = (cx - w // 2, cy - h // 2 + 30, cx + w // 2, cy + h // 2 + 80)
@@ -267,7 +277,7 @@ def draw_laptop(canvas, cx, cy, w=1500, h=900):
     d.rounded_rectangle((cx - 80, cy + h // 2 + 4, cx + 80, cy + h // 2 + 14),
                         radius=6, fill=(33, 33, 38))
     canvas.alpha_composite(overlay)
-    draw_dashboard_in_screen(canvas, screen)
+    draw_dashboard_in_screen(canvas, screen, charts=charts)
 
 
 # ---------------------------------------------------------------------------
@@ -340,39 +350,89 @@ def draw_table(img, inner, headers, rows, status_col=None, status_map=None,
 
 
 # ===========================================================================
-# Image 1: HERO (luxury elevated)
+# Image 1: HERO (luxury elevated, feature-forward "all-in-one" thumbnail)
 # ===========================================================================
+def _benefit_badge(img, cx, cy, big, small, w=470, h=210):
+    box = (cx - w // 2, cy - h // 2, cx + w // 2, cy + h // 2)
+    drop_shadow(img, box, radius=22, blur=26, alpha=90)
+    ov = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    od = ImageDraw.Draw(ov)
+    od.rounded_rectangle(box, radius=22, fill=PRIMARY, outline=GOLD_LT, width=3)
+    od.text((cx, cy - h * 0.20), big, font=fserif(64), fill=GOLD_LT, anchor="mm")
+    od.text((cx, cy + h * 0.26), small, font=fs(25), fill=WHITE, anchor="mm")
+    img.alpha_composite(ov)
+
+
+def _feature_card(img, x, y, w, h, title, sub):
+    box = (x, y, x + w, y + h)
+    drop_shadow(img, box, radius=16, blur=18, alpha=60)
+    ov = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    od = ImageDraw.Draw(ov)
+    od.rounded_rectangle(box, radius=16, fill=WHITE, outline=GOLD_LT, width=2)
+    # mint check badge
+    cyc = y + h // 2
+    bx = x + 44
+    od.ellipse((bx - 30, cyc - 30, bx + 30, cyc + 30), fill=HIGHLIGHT, outline=PRIMARY, width=3)
+    od.text((bx, cyc - 1), "✓", font=fs(34), fill=PRIMARY, anchor="mm")
+    od.text((x + 92, cyc - 22), title, font=fs(31), fill=PRIMARY, anchor="lm")
+    od.text((x + 92, cyc + 24), sub, font=fs(23, bold=False), fill=TEXT_MUTED, anchor="lm")
+    img.alpha_composite(ov)
+
+
 def render_hero(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     dotted_bg(img)
     d = ImageDraw.Draw(img)
 
-    # Monogram crest at top
-    monogram(img, SIZE // 2, 175, r=72)
-
-    pill(img, SIZE // 2, 330, "ULTIMATE 32-SHEET WEDDING SYSTEM",
-         font=fs(42), pad_x=64, pad_y=24)
+    # Monogram crest + ALL-IN-ONE pill
+    monogram(img, SIZE // 2, 150, r=60)
+    pill(img, SIZE // 2, 285, "THE ULTIMATE ALL-IN-ONE WEDDING PLANNER",
+         font=fs(38), pad_x=58, pad_y=22)
 
     # Serif wordmark
-    tcenter(d, (SIZE // 2, 510), "WEDDING", fserif(184), PRIMARY)
-    tcenter(d, (SIZE // 2, 690), "COMMAND CENTER", fserif(128), PRIMARY)
+    tcenter(d, (SIZE // 2, 430), "WEDDING", fserif(150), PRIMARY)
+    tcenter(d, (SIZE // 2, 552), "COMMAND CENTER", fserif(104), PRIMARY)
+    gold_divider(img, SIZE // 2, 632, width=560)
+    tcenter(d, (SIZE // 2, 680),
+            "Budget to the big day — every detail in ONE elegant file",
+            fs(26, bold=False), TEXT_MUTED)
 
-    gold_divider(img, SIZE // 2, 800, width=620)
-    tcenter(d, (SIZE // 2, 858), "BUDGET   ·   GUESTS   ·   VENDORS   ·   THE BIG DAY",
-            fs(40), ACCENT)
+    # Dashboard laptop — KPIs + nav only (clean, no chart overflow)
+    draw_laptop(img, SIZE // 2, 1015, w=1360, h=560, charts=False)
 
-    # Laptop
-    draw_laptop(img, SIZE // 2, 1340, w=1660, h=950)
+    # Benefit badges straddle the laptop's top edge (clear of the KPI values)
+    _benefit_badge(img, 300, 738, "32", "TOOLS IN ONE FILE", w=430, h=168)
+    _benefit_badge(img, SIZE - 300, 738, "2-in-1", "EXCEL + GOOGLE SHEETS", w=430, h=168)
 
-    # Floating KPI callouts
-    kpi_callout(img, 360, 1115, "DAYS TO GO", "318",
-                width=660, height=250, value_color=ACCENT)
-    kpi_callout(img, SIZE - 360, 1115, "READINESS", "82%",
-                width=660, height=250)
+    # Feature grid — show off what's inside
+    tcenter(d, (SIZE // 2, 1360), "EVERYTHING YOU NEED, IN ONE PLACE",
+            fs(34), ACCENT)
+    features = [
+        ("Budget & Payments", "21 categories tracked"),
+        ("Guest List + RSVP", "200-guest CRM"),
+        ("Interactive Seating", "auto table rosters"),
+        ("Vendor Manager", "quotes & contracts"),
+        ("18-Month Timeline", "auto-scheduled tasks"),
+        ("Master Checklist", "never miss a step"),
+        ("Vision Board", "pin your inspiration"),
+        ("Wedding-Day Plan", "hour-by-hour run sheet"),
+    ]
+    cols = 4
+    margin = 120
+    gapx, gapy = 24, 26
+    cw = (SIZE - 2 * margin - (cols - 1) * gapx) // cols
+    ch = 150
+    top = 1430
+    for i, (title, sub) in enumerate(features):
+        r, c = divmod(i, cols)
+        x = margin + c * (cw + gapx)
+        y = top + r * (ch + gapy)
+        _feature_card(img, x, y, cw, ch, title, sub)
 
     # CTA
-    pill(img, SIZE // 2, SIZE - 150, "GET THE COMPLETE 32-SHEET SYSTEM",
-         font=fs(52), pad_x=72, pad_y=32, star=True)
+    pill(img, SIZE // 2, SIZE - 120,
+         "32 SHEETS · INSTANT DOWNLOAD · EXCEL + GOOGLE SHEETS",
+         font=fs(40), pad_x=64, pad_y=30, star=True)
 
     img.convert("RGB").save(out, "PNG", optimize=True)
 
