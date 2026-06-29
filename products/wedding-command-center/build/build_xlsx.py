@@ -613,11 +613,11 @@ def build_budget(wb):
     pie.set_categories(Reference(ws, min_col=1, min_row=start, max_row=end))
     pie.dataLabels = DataLabelList(showPercent=True)
     ws.add_chart(pie, "A28")
-    bar = BarChart(); bar.type = "col"; bar.title = "Budget vs Actual"; bar.height = 9; bar.width = 16
+    bar = BarChart(); bar.type = "col"; bar.title = "Budget vs Actual"; bar.height = 9; bar.width = 18
     bar.add_data(Reference(ws, min_col=2, min_row=4, max_row=end), titles_from_data=True)
     bar.add_data(Reference(ws, min_col=3, min_row=4, max_row=end), titles_from_data=True)
     bar.set_categories(Reference(ws, min_col=1, min_row=start, max_row=end))
-    ws.add_chart(bar, "G28")
+    ws.add_chart(bar, "A47")
 
 
 # ===========================================================================
@@ -977,16 +977,17 @@ def build_rsvp(wb):
         ws.cell(row=rr, column=2, value=st).style = "td_left"
         c = ws.cell(row=rr, column=3, value=fml); c.style = "td"; c.number_format = "0"
 
-    donut = DoughnutChart(); donut.title = "RSVP Progress"; donut.height = 8; donut.width = 11
+    # Two charts stacked with a clear gap (donut ~7cm ≈ 13 rows ends ~row 28).
+    donut = DoughnutChart(); donut.title = "RSVP Progress"; donut.height = 7; donut.width = 12
     donut.add_data(Reference(ws, min_col=3, min_row=15, max_row=18), titles_from_data=True)
     donut.set_categories(Reference(ws, min_col=2, min_row=16, max_row=18))
     donut.dataLabels = DataLabelList(showVal=True)
-    ws.add_chart(donut, "E15")
+    ws.add_chart(donut, "H4")
 
-    bar = BarChart(); bar.type = "col"; bar.title = "Meal Selections"; bar.height = 8; bar.width = 11
+    bar = BarChart(); bar.type = "col"; bar.title = "Meal Selections"; bar.height = 7; bar.width = 12
     bar.add_data(Reference(ws, min_col=6, min_row=6, max_row=6 + len(MEAL_TYPES)), titles_from_data=True)
     bar.set_categories(Reference(ws, min_col=5, min_row=7, max_row=6 + len(MEAL_TYPES)))
-    ws.add_chart(bar, "E26")
+    ws.add_chart(bar, "H20")
 
 
 # ===========================================================================
@@ -1330,35 +1331,38 @@ def build_dashboard(wb):
     # Analytics charts
     ws.row_dimensions[14].height = 26
     merge_set(ws, "B14:K14", "ANALYTICS", "section_gold")
+    # Charts are laid out on a clear 2x2 grid: left column anchored at B,
+    # right column at H (past the left chart's right edge); two row bands
+    # (15 and 35) spaced so 9cm-tall charts never overlap.
     bend = 4 + len(BUDGET_CATEGORIES)
-    donut = DoughnutChart(); donut.title = "Budget Breakdown"; donut.height = 9; donut.width = 13
+    donut = DoughnutChart(); donut.title = "Budget Breakdown"; donut.height = 8.5; donut.width = 12
     donut.add_data(Reference(wb["Budget"], min_col=3, min_row=4, max_row=bend), titles_from_data=True)
     donut.set_categories(Reference(wb["Budget"], min_col=1, min_row=5, max_row=bend))
     donut.dataLabels = DataLabelList(showPercent=True)
     ws.add_chart(donut, "B15")
 
-    bar = BarChart(); bar.type = "col"; bar.title = "Budget vs Actual"; bar.height = 9; bar.width = 13
+    bar = BarChart(); bar.type = "col"; bar.title = "Budget vs Actual"; bar.height = 8.5; bar.width = 12
     bar.add_data(Reference(wb["Budget"], min_col=2, min_row=4, max_row=bend), titles_from_data=True)
     bar.add_data(Reference(wb["Budget"], min_col=3, min_row=4, max_row=bend), titles_from_data=True)
     bar.set_categories(Reference(wb["Budget"], min_col=1, min_row=5, max_row=bend))
-    ws.add_chart(bar, "G15")
+    ws.add_chart(bar, "H15")
 
     # RSVP donut from RSVP helper table
-    donut2 = DoughnutChart(); donut2.title = "RSVP Progress"; donut2.height = 9; donut2.width = 13
+    donut2 = DoughnutChart(); donut2.title = "RSVP Progress"; donut2.height = 8.5; donut2.width = 12
     donut2.add_data(Reference(wb["RSVP"], min_col=3, min_row=15, max_row=18), titles_from_data=True)
     donut2.set_categories(Reference(wb["RSVP"], min_col=2, min_row=16, max_row=18))
     donut2.dataLabels = DataLabelList(showVal=True)
-    ws.add_chart(donut2, "B33")
+    ws.add_chart(donut2, "B35")
 
     # Readiness scores bar from Analytics
-    bar2 = BarChart(); bar2.type = "bar"; bar2.title = "Readiness by Dimension"; bar2.height = 9; bar2.width = 13
+    bar2 = BarChart(); bar2.type = "bar"; bar2.title = "Readiness by Dimension"; bar2.height = 8.5; bar2.width = 12
     bar2.add_data(Reference(wb["Analytics"], min_col=3, min_row=6, max_row=12), titles_from_data=True)
     bar2.set_categories(Reference(wb["Analytics"], min_col=2, min_row=7, max_row=12))
-    ws.add_chart(bar2, "G33")
+    ws.add_chart(bar2, "H35")
 
     # Footer
-    ws.row_dimensions[52].height = 26
-    merge_set(ws, "B52:K52",
+    ws.row_dimensions[56].height = 26
+    merge_set(ws, "B56:K56",
               "Wedding Command Center v1.0  ·  Edit Settings → Wedding Date · Budget · Guests  ·  Hyperlink nav chips to each sheet in Excel/Sheets",
               "subtitle")
 
