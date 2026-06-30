@@ -615,13 +615,13 @@ def build_budget(wb):
 # ===========================================================================
 def build_bills(wb):
     sample = [
-        ("Mortgage", "Mortgage/Rent", 1850, dplus(2), "Yes", "No", "", dplus(335)),
-        ("Electric", "Utilities", 165, dplus(6), "No", "No", "", ""),
+        ("Mortgage", "Mortgage/Rent", 1850, dplus(2), "Yes", "Yes", "CONF-10231", dplus(335)),
+        ("Electric", "Utilities", 165, dplus(6), "No", "Yes", "CONF-44120", ""),
         ("Water/Sewer", "Utilities", 78, dplus(11), "No", "No", "", ""),
-        ("Internet", "Internet", 75, dplus(8), "Yes", "No", "", ""),
-        ("Cell Phones", "Phones", 140, dplus(14), "Yes", "No", "", ""),
-        ("Home Insurance", "Insurance", 180, dplus(20), "Yes", "No", "", dplus(120)),
-        ("Auto Insurance", "Insurance", 180, dplus(20), "Yes", "No", "", dplus(95)),
+        ("Internet", "Internet", 75, dplus(8), "Yes", "Yes", "CONF-90021", ""),
+        ("Cell Phones", "Phones", 140, dplus(14), "Yes", "Yes", "CONF-77410", ""),
+        ("Home Insurance", "Insurance", 180, dplus(20), "Yes", "Yes", "CONF-22018", dplus(120)),
+        ("Auto Insurance", "Insurance", 180, dplus(20), "Yes", "Yes", "CONF-22019", dplus(95)),
         ("Childcare", "Childcare", 600, dplus(1), "No", "No", "", ""),
         ("Trash Service", "Utilities", 38, dplus(-2), "No", "No", "", ""),
         ("Gym Membership", "Subscriptions", 45, dplus(16), "Yes", "Yes", "AUTH-7781", dplus(196)),

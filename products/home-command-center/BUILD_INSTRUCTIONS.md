@@ -38,8 +38,10 @@ Keep feature parity (ARRAYFORMULA / QUERY / FILTER where useful).
 cd build && python3 build_marketing.py     # -> ../marketing/01..06.png
 ```
 
-Six 2000×2000 PNGs: hero, dashboard, budget+bills, cleaning/chores/meals,
-household health score, mobile.
+Six 2000×2000 PNGs, rendered as dense "app screenshots" (sidebar of all 28
+tabs + the real computed KPI numbers + fully populated tables/charts):
+hero, everything-inside (28-tab showcase), executive dashboard, budget &
+bills, meals & cleaning, mobile.
 
 ---
 
