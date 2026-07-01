@@ -3,6 +3,7 @@ import { sql } from '@/lib/db'
 import type { Vendor } from '@/lib/db'
 import Link from 'next/link'
 import { Plus, Star, Phone, Mail } from 'lucide-react'
+import { DeleteButton } from '@/components/ui/delete-button'
 
 const AVAILABILITY_COLORS = {
   available: 'bg-green-100 text-green-700',
@@ -102,6 +103,10 @@ export default async function VendorsPage() {
                     <span className="text-xs text-gray-500">{vendor.active_tickets} active</span>
                   )}
                 </div>
+              </div>
+
+              <div className="flex justify-end mt-3">
+                <DeleteButton endpoint={`/api/vendors/${vendor.id}`} label="Delete" size="sm" confirmLabel="Delete vendor" />
               </div>
             </div>
           ))}

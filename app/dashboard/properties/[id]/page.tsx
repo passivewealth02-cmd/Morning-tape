@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, MapPin, QrCode } from 'lucide-react'
 import { UnitManager } from '@/components/properties/unit-manager'
+import { DeleteButton } from '@/components/ui/delete-button'
 
 export default async function PropertyDetailPage({
   params,
@@ -42,13 +43,21 @@ export default async function PropertyDetailPage({
             {(property.city || property.province) && ` · ${[property.city, property.province].filter(Boolean).join(', ')}`}
           </p>
         </div>
-        <Link
-          href={`/dashboard/properties/${property.id}/qr`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium border border-gray-200 hover:border-indigo-200 hover:bg-indigo-50 text-gray-700 px-3 py-2 rounded-lg transition-colors shrink-0"
-        >
-          <QrCode className="w-4 h-4" />
-          QR codes
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/dashboard/properties/${property.id}/qr`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium border border-gray-200 hover:border-indigo-200 hover:bg-indigo-50 text-gray-700 px-3 py-2 rounded-lg transition-colors"
+          >
+            <QrCode className="w-4 h-4" />
+            QR codes
+          </Link>
+          <DeleteButton
+            endpoint={`/api/properties/${property.id}`}
+            redirectTo="/dashboard/properties"
+            label="Delete"
+            confirmLabel="Delete property"
+          />
+        </div>
       </div>
 
       <UnitManager propertyId={property.id} units={units} />

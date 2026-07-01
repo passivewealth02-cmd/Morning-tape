@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth'
 import { sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { TicketDetail } from '@/components/tickets/ticket-detail'
+import { DeleteButton } from '@/components/ui/delete-button'
 import type { MaintenanceTicket, TicketMessage, ActivityLog, Vendor, TicketFile } from '@/lib/db'
 
 interface Props {
@@ -63,6 +64,9 @@ export default async function TicketDetailPage({ params }: Props) {
 
   return (
     <div className="p-6">
+      <div className="flex justify-end mb-4">
+        <DeleteButton endpoint={`/api/tickets/${id}`} redirectTo="/dashboard/tickets" label="Delete ticket" confirmLabel="Delete this ticket" />
+      </div>
       <TicketDetail
         ticket={ticketRows[0] as unknown as MaintenanceTicket}
         messages={messages as unknown as TicketMessage[]}
