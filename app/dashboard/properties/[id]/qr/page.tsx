@@ -57,6 +57,9 @@ export default async function PropertyQrPage({ params }: Props) {
               Print these and post them on unit doors, fridges, or mailrooms. When a tenant scans one, the
               request form opens already knowing their exact property and unit — no typing, no mistakes.
             </p>
+            <p className="text-xs text-indigo-600 mt-2 font-medium">
+              Tip: click any unit below to download, email, or print just that one code.
+            </p>
           </div>
           <PrintButton />
         </div>
@@ -84,11 +87,17 @@ export default async function PropertyQrPage({ params }: Props) {
         {units.map(u => {
           const url = `${base}/submit/${token}?property=${property.id}&unit=${u.id}`
           return (
-            <div key={u.id} className="rounded-xl border border-gray-200 bg-white p-4 text-center break-inside-avoid">
+            <Link
+              key={u.id}
+              href={`/dashboard/properties/${property.id}/qr/${u.id}`}
+              className="rounded-xl border border-gray-200 bg-white p-4 text-center break-inside-avoid hover:border-indigo-300 hover:shadow-sm transition-all print:hover:shadow-none print:cursor-auto"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={qrSrc(url)} alt={`QR for unit ${u.unit_number}`} className="w-full max-w-[180px] mx-auto" />
               <p className="mt-2 text-sm font-semibold text-gray-900">Unit {u.unit_number}</p>
               <p className="text-xs text-gray-500">{property.name}</p>
-            </div>
+              <p className="mt-1 text-[11px] font-medium text-indigo-600 print:hidden">Download · Email · Print →</p>
+            </Link>
           )
         })}
       </div>

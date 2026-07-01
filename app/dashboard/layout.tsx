@@ -31,15 +31,19 @@ export default async function DashboardLayout({
   const showTrialBanner = trialActive || trialExpiredNoCard || pastDue
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+    <div className="flex h-screen bg-gray-50 overflow-hidden print:block print:h-auto print:overflow-visible">
+      <div className="contents print:hidden">
+        <Sidebar />
+      </div>
+      <main className="flex-1 overflow-y-auto print:overflow-visible">
         {showTrialBanner && org && (
-          <TrialBanner
-            daysLeft={trialDaysLeft(org)}
-            expired={!trialActive && !pastDue}
-            pastDue={!!pastDue}
-          />
+          <div className="print:hidden">
+            <TrialBanner
+              daysLeft={trialDaysLeft(org)}
+              expired={!trialActive && !pastDue}
+              pastDue={!!pastDue}
+            />
+          </div>
         )}
         {children}
       </main>
