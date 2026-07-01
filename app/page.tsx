@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Zap, Users, ClipboardList, Bell, BarChart3, Shield, Inbox, Sparkles, Star, Paperclip, Mail, Lock } from 'lucide-react'
+import { ArrowRight, Zap, Users, ClipboardList, Bell, BarChart3, Shield, Sparkles, Star, Paperclip, Mail, Lock, QrCode, Smartphone, Building2 } from 'lucide-react'
 import { HeroCTA } from '@/components/home/hero-cta'
 import { SiteHeader } from '@/components/marketing/site-header'
 import { SiteFooter } from '@/components/marketing/site-footer'
@@ -23,10 +23,10 @@ export const metadata = pageMetadata({
 
 const steps = [
   {
-    icon: Inbox,
-    title: 'Tenant submits a request',
-    body: 'Tenants report issues by email or web form — with optional photo attachments. Each becomes a structured ticket instantly. No app to download, no account to create.',
-    detail: 'Email · Web form · Photo attachments',
+    icon: QrCode,
+    title: 'Tenant scans & reports in seconds',
+    body: 'Post a QR code on every unit door. Tenants scan it and the request form already knows their exact property and unit — no typing, no wrong-address guesswork. They can also use the mobile form or email. No app, no account, no login.',
+    detail: 'QR per unit · Mobile form · Email intake',
   },
   {
     icon: Sparkles,
@@ -37,14 +37,14 @@ const steps = [
   {
     icon: Users,
     title: 'Dispatch the right vendor',
-    body: 'Maintena ranks your vendors by trade match, location, availability, and past performance. Assign in one click — the vendor gets an automatic email with the ticket details and any attached photos.',
+    body: 'Maintena ranks your vendors by trade match, availability, and past performance. Assign in one click — the vendor gets an automatic email with the ticket details and any attached photos.',
     detail: 'Smart ranking · One-click assign · Auto-notify vendor',
   },
   {
     icon: Bell,
     title: 'Keep everyone in the loop',
-    body: 'Tenants get automatic status updates at every stage. Managers can post internal notes. Vendors can update status. Nobody calls "any update?" anymore.',
-    detail: 'Tenant emails · Internal notes · Vendor updates',
+    body: 'Tenants get automatic status emails plus a live tracking link — they follow their request from received to done without ever calling to ask. Managers post internal notes; vendors update status.',
+    detail: 'Live tracking link · Tenant emails · Vendor updates',
   },
   {
     icon: ClipboardList,
@@ -56,24 +56,39 @@ const steps = [
 
 const features = [
   {
+    icon: QrCode,
+    title: 'Scan-to-report QR codes',
+    description: 'Generate a printable QR code for every unit. Tenants scan the one on their door and the form opens pre-filled with their exact property and unit — zero typing, zero mismatched addresses.',
+  },
+  {
     icon: Zap,
     title: 'AI ticket classification',
-    description: 'Every maintenance request is automatically categorized by trade, urgency-rated, and matched to the right vendor type. No manual triage ever.',
+    description: 'Every request is automatically categorized by trade, urgency-rated, and matched to the right vendor type. No manual triage, ever.',
   },
   {
     icon: Users,
     title: 'Smart vendor dispatch',
-    description: 'AI ranks your vendor network for each job by trade, location, availability, and performance rating. Assign and notify in one click.',
+    description: 'AI ranks your vendor network for each job by trade, availability, and performance rating, then auto-assigns and notifies the best match in one step.',
+  },
+  {
+    icon: Smartphone,
+    title: 'Mobile form + live tracking',
+    description: 'A fast, mobile-first request form with property and unit dropdowns. After submitting, tenants get a live status link — received, assigned, in progress, done — no account needed.',
+  },
+  {
+    icon: Building2,
+    title: 'Bulk property & unit setup',
+    description: 'Add a whole building at once. Type a range like 1-20 to generate every unit, or paste your entire portfolio in one import. Setup that used to take an hour takes a minute.',
   },
   {
     icon: Paperclip,
     title: 'Secure photo attachments',
-    description: 'Tenants and managers attach photos directly to tickets. Files are stored privately — never a public URL — and served only to authenticated users in your org.',
+    description: 'Tenants and managers attach photos to tickets. Files are stored privately — never a public URL — and served only to authenticated users in your org.',
   },
   {
     icon: Mail,
     title: 'Email & web intake',
-    description: 'Connect a dedicated inbox and share a web form. Every inbound email or form submission becomes a ticket automatically — no manual entry.',
+    description: 'Share a web form or forward a dedicated inbox. Every inbound email or form submission becomes a structured ticket automatically — no manual entry.',
   },
   {
     icon: ClipboardList,
@@ -88,12 +103,12 @@ const features = [
   {
     icon: BarChart3,
     title: 'SLA tracking & alerts',
-    description: 'Set response-time targets per urgency level. Get alerted before tickets breach their SLA. Track resolution time by property and vendor.',
+    description: 'Set response-time targets per urgency level and get alerted before tickets breach. Track resolution time by property and vendor.',
   },
   {
     icon: Lock,
-    title: 'Rate-limited intake',
-    description: 'Public submission forms are rate-limited per IP and per form token to prevent spam and abuse — keeping your ticket queue clean.',
+    title: 'Spam-proof intake',
+    description: 'Public submission forms are rate-limited per IP and per link to prevent spam and abuse — keeping your ticket queue clean and trustworthy.',
   },
   {
     icon: Shield,
@@ -131,7 +146,15 @@ const faqs = [
   },
   {
     q: 'Do tenants need to download an app?',
-    a: 'No. Tenants can submit maintenance requests by email or web form. They can attach photos directly. Maintena captures each submission automatically and turns it into a structured ticket — there is nothing for residents to install.',
+    a: 'No. Tenants scan a QR code posted on their unit, use a mobile-friendly web form, or simply email — and attach photos directly. Maintena turns each submission into a structured ticket automatically. There is nothing for residents to install and no account to create.',
+  },
+  {
+    q: 'How do QR codes make reporting faster?',
+    a: 'Print a unique QR code for each unit and post it on the door or fridge. When a tenant scans it, the request form opens already knowing their exact property and unit — so there is no typing, no wrong addresses, and requests route to the right place the first time. You can download, email, or print each code individually.',
+  },
+  {
+    q: 'Can tenants track their request?',
+    a: 'Yes. After submitting, every tenant gets a private link to a live status tracker — received, assigned, in progress, completed — so they can follow progress without calling or emailing to ask for updates.',
   },
   {
     q: 'Can I use my own vendors?',
@@ -175,7 +198,7 @@ export default function Home() {
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-500 mb-10 max-w-2xl leading-relaxed">
-              Maintena captures every maintenance request, triages it with AI, dispatches the right vendor, and tracks the repair to completion — so you stop losing requests and chasing vendors by hand.
+              Tenants scan a QR code to report an issue in seconds. Maintena&apos;s AI triages it, dispatches the right vendor, and tracks the repair to completion — so you stop losing requests and chasing vendors by hand.
             </p>
 
             <HeroCTA />
@@ -222,7 +245,11 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <div className="px-4 sm:px-6 py-3 border-t border-gray-50 flex items-center gap-4">
+              <div className="px-4 sm:px-6 py-3 border-t border-gray-50 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex items-center gap-1.5">
+                  <QrCode className="w-3 h-3 text-gray-400" />
+                  <span className="text-xs text-gray-500">Scanned via QR</span>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-indigo-500" />
                   <span className="text-xs text-gray-500">AI-triaged</span>
@@ -264,6 +291,22 @@ export default function Home() {
                 </li>
               ))}
             </ol>
+
+            {/* KPIs */}
+            <dl className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { value: '~8 sec', label: 'AI triage per request', sub: 'vs. ~3 minutes by hand' },
+                { value: '~10 hrs', label: 'Saved every month', sub: 'coordinator time at 50 units' },
+                { value: '1 scan', label: 'For a tenant to report', sub: 'no typing, no app, no login' },
+                { value: 'Under 5 min', label: 'To get fully set up', sub: 'bulk-add your whole portfolio' },
+              ].map(kpi => (
+                <div key={kpi.label} className="bg-white rounded-xl border border-gray-200 p-5 text-center">
+                  <dd className="text-2xl sm:text-3xl font-semibold text-indigo-600">{kpi.value}</dd>
+                  <dt className="text-sm font-medium text-gray-900 mt-1.5">{kpi.label}</dt>
+                  <p className="text-xs text-gray-400 mt-0.5">{kpi.sub}</p>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
