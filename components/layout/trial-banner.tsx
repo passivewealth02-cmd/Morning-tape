@@ -4,7 +4,7 @@ import { Sparkles, AlertCircle } from 'lucide-react'
 export function TrialBanner({ daysLeft, expired, pastDue }: { daysLeft: number; expired: boolean; pastDue?: boolean }) {
   if (pastDue) {
     return (
-      <div className="bg-red-50 border-b border-red-200 px-6 py-2.5 flex items-center justify-between gap-3">
+      <div className="bg-red-50 border-b border-red-200 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm text-red-900">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>Payment failed. Update your payment method to keep access.</span>
@@ -21,7 +21,7 @@ export function TrialBanner({ daysLeft, expired, pastDue }: { daysLeft: number; 
 
   if (expired) {
     return (
-      <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between gap-3">
+      <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm text-amber-900">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>Your free trial has ended. You&apos;re now on Starter limits.</span>
@@ -39,7 +39,7 @@ export function TrialBanner({ daysLeft, expired, pastDue }: { daysLeft: number; 
   const urgent = daysLeft <= 3
   return (
     <div
-      className={`border-b px-6 py-2.5 flex items-center justify-between gap-3 ${
+      className={`border-b px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
         urgent ? 'bg-amber-50 border-amber-200' : 'bg-indigo-50 border-indigo-200'
       }`}
     >

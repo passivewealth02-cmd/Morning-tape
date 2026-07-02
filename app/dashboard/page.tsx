@@ -67,7 +67,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: 'Total Open', value: stats.total, color: 'text-gray-900' },
           { label: 'New / Unassigned', value: stats.new, color: 'text-blue-700' },

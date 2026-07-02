@@ -117,9 +117,9 @@ export function TicketDetail({ ticket: initial, messages: initialMessages, activ
         Back to tickets
       </Link>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main column */}
-        <div className="col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4">
           {/* Header */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-start gap-3 mb-4">
