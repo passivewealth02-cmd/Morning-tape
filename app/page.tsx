@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Zap, Users, ClipboardList, Bell, BarChart3, Shield, Sparkles, Star, Paperclip, Mail, Lock, QrCode, Smartphone, Building2 } from 'lucide-react'
+import { ArrowRight, Zap, Users, ClipboardList, Bell, BarChart3, Shield, Sparkles, Paperclip, Mail, Lock, QrCode, Smartphone, Building2 } from 'lucide-react'
 import { HeroCTA } from '@/components/home/hero-cta'
 import { SiteHeader } from '@/components/marketing/site-header'
 import { SiteFooter } from '@/components/marketing/site-footer'
@@ -117,21 +117,18 @@ const features = [
   },
 ]
 
-const testimonials = [
+const painPoints = [
   {
-    quote: 'We stopped losing requests in email threads overnight. Maintena routes everything and our response time dropped by half.',
-    name: 'Dana R.',
-    role: 'Property Manager, 240 units',
+    problem: '“Which vendor did we send — and did they show up?”',
+    solution: 'Every job is assigned, tracked, and logged. You always know the status at a glance.',
   },
   {
-    quote: 'The AI vendor matching is the real deal. I assign the right contractor in one click instead of calling around.',
-    name: 'Marcus T.',
-    role: 'Operations Lead, multifamily portfolio',
+    problem: 'Requests lost across calls, texts, email, and spreadsheets',
+    solution: 'One intake for QR, web, and email. Every request becomes a structured ticket — nothing slips through.',
   },
   {
-    quote: 'Tenants finally feel heard because they get automatic updates. Our "any update?" calls basically disappeared.',
-    name: 'Priya S.',
-    role: 'Regional Manager, residential',
+    problem: 'Tenants constantly calling for updates',
+    solution: 'Automatic status emails and a live tracking link keep them informed, so your phone stops ringing.',
   },
 ]
 
@@ -194,11 +191,11 @@ export default function Home() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-gray-900 leading-tight mb-6">
-              AI property maintenance software for property managers
+              Stop losing maintenance requests and chasing vendors
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-500 mb-10 max-w-2xl leading-relaxed">
-              Tenants scan a QR code to report an issue in seconds. Maintena&apos;s AI triages it, dispatches the right vendor, and tracks the repair to completion — so you stop losing requests and chasing vendors by hand.
+              Maintena is AI-powered maintenance coordination for property managers. Tenants scan a QR code to report an issue, AI triages it, and the right vendor is dispatched automatically — with tenants kept in the loop the whole way.
             </p>
 
             <HeroCTA />
@@ -378,29 +375,36 @@ export default function Home() {
         </section>
 
         {/* Testimonials */}
-        <section className="bg-gray-50 py-20 sm:py-24 border-y border-gray-100" aria-label="Customer testimonials">
+        <section className="bg-gray-50 py-20 sm:py-24 border-y border-gray-100" aria-label="Why Maintena">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-14 sm:mb-16">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">Trusted by property managers</h2>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">Built for the way property managers actually work</h2>
               <p className="text-base sm:text-lg text-gray-500 max-w-xl mx-auto">
-                Teams use Maintena to cut response times, keep tenants informed, and stay on top of every repair.
+                Maintena replaces the calls, texts, and spreadsheets that maintenance coordination usually runs on.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
-              {testimonials.map(t => (
-                <figure key={t.name} className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="flex gap-0.5 mb-3" aria-hidden>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <blockquote className="text-sm text-gray-600 leading-relaxed mb-4">"{t.quote}"</blockquote>
-                  <figcaption className="text-sm">
-                    <span className="font-semibold text-gray-900">{t.name}</span>
-                    <span className="block text-gray-400">{t.role}</span>
-                  </figcaption>
-                </figure>
+              {painPoints.map(item => (
+                <div key={item.problem} className="bg-white rounded-xl p-6 border border-gray-200">
+                  <p className="text-sm font-semibold text-gray-900 mb-2">{item.problem}</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">{item.solution}</p>
+                </div>
               ))}
+            </div>
+
+            <div className="mt-12 rounded-2xl bg-indigo-600 p-8 sm:p-10 text-center">
+              <p className="text-xs font-semibold text-indigo-200 uppercase tracking-wide mb-2">Founding customer program</p>
+              <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">Be one of our first property managers</h3>
+              <p className="text-indigo-100 text-sm max-w-xl mx-auto mb-6">
+                Start a free 14-day trial and we&apos;ll help set up your entire portfolio — bulk-import your properties and generate a QR code for every unit.
+              </p>
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 bg-white text-indigo-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition-colors"
+              >
+                Start free trial
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </section>
