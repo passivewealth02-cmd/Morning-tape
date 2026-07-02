@@ -28,6 +28,7 @@ export type CreateTicketInput = {
   tenant_phone?: string | null
   created_by?: string | null
   source?: 'manual' | 'email' | 'sms' | 'web'
+  draft?: boolean
 }
 
 export async function createTicketWithAI(input: CreateTicketInput): Promise<MaintenanceTicket> {
@@ -43,16 +44,17 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
     tenant_phone = null,
     created_by = null,
     source = 'manual',
+    draft = false,
   } = input
 
   const inserted = (await sql`
     INSERT INTO maintenance_tickets (
       organization_id, property_id, unit_id, title, description, urgency,
-      status, tenant_name, tenant_email, tenant_phone, created_by, sla_due_at
+      status, is_draft, tenant_name, tenant_email, tenant_phone, created_by, sla_due_at
     )
     VALUES (
       ${organization_id}, ${property_id}, ${unit_id}, ${title}, ${description}, ${urgency},
-      'new', ${tenant_name}, ${tenant_email}, ${tenant_phone}, ${created_by}, ${slaDueDate(urgency)}
+      'new', ${draft}, ${tenant_name}, ${tenant_email}, ${tenant_phone}, ${created_by}, ${slaDueDate(urgency)}
     )
     RETURNING *
   `) as unknown as MaintenanceTicket[]
@@ -63,11 +65,23 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
     organizationId: organization_id,
     ticketId: ticket.id,
     userId: created_by ?? undefined,
-    actionType: source === 'email' ? 'ticket_created_email' : 'ticket_created',
-    description: `Ticket created${source !== 'manual' ? ` via ${source}` : ''}: ${title}`,
-    metadata: { urgency: ticket.urgency, source },
+    actionType: draft ? 'draft_created' : source === 'email' ? 'ticket_created_email' : 'ticket_created',
+    description: draft
+      ? `Draft saved: ${title}`
+      : `Ticket created${source !== 'manual' ? ` via ${source}` : ''}: ${title}`,
+    metadata: { urgency: ticket.urgency, source, draft },
   })
 
+  // Drafts are held for review — no AI triage, dispatch, or notifications until submitted.
+  if (draft) return ticket
+
+  return triageAndDispatch(ticket)
+}
+
+// Runs AI classification and auto-dispatch on an existing ticket. Used on
+// creation and when a saved draft is submitted.
+export async function triageAndDispatch(ticket: MaintenanceTicket): Promise<MaintenanceTicket> {
+  const { title, description } = ticket
   let analysisOk = false
   try {
     const analysis = await analyzeMaintenanceTicket(title, description)

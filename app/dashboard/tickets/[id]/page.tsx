@@ -1,8 +1,10 @@
 import { getSession } from '@/lib/auth'
 import { sql } from '@/lib/db'
 import { notFound } from 'next/navigation'
+import { FileEdit } from 'lucide-react'
 import { TicketDetail } from '@/components/tickets/ticket-detail'
 import { DeleteButton } from '@/components/ui/delete-button'
+import { SubmitDraftButton } from '@/components/tickets/submit-draft-button'
 import type { MaintenanceTicket, TicketMessage, ActivityLog, Vendor, TicketFile } from '@/lib/db'
 
 interface Props {
@@ -60,15 +62,29 @@ export default async function TicketDetailPage({ params }: Props) {
     `,
   ])
 
-  if (ticketRows.length === 0) notFound()
+  const ticketList = ticketRows as unknown as MaintenanceTicket[]
+  if (ticketList.length === 0) notFound()
+
+  const ticket = ticketList[0]
 
   return (
     <div className="p-6">
+      {ticket.is_draft && (
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <FileEdit className="w-4 h-4 text-amber-600 shrink-0" />
+            <p className="text-sm text-amber-800">
+              <span className="font-semibold">This is a draft.</span> No AI triage, vendor dispatch, or tenant emails have been sent yet.
+            </p>
+          </div>
+          <SubmitDraftButton ticketId={id} />
+        </div>
+      )}
       <div className="flex justify-end mb-4">
-        <DeleteButton endpoint={`/api/tickets/${id}`} redirectTo="/dashboard/tickets" label="Delete ticket" confirmLabel="Delete this ticket" />
+        <DeleteButton endpoint={`/api/tickets/${id}`} redirectTo="/dashboard/tickets" label={ticket.is_draft ? 'Delete draft' : 'Delete ticket'} confirmLabel={ticket.is_draft ? 'Delete this draft' : 'Delete this ticket'} />
       </div>
       <TicketDetail
-        ticket={ticketRows[0] as unknown as MaintenanceTicket}
+        ticket={ticket}
         messages={messages as unknown as TicketMessage[]}
         activityLogs={logs as unknown as ActivityLog[]}
         vendors={vendors as unknown as Vendor[]}

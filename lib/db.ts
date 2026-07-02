@@ -101,6 +101,7 @@ export type MaintenanceTicket = {
   description: string
   status: TicketStatus
   urgency: TicketUrgency
+  is_draft: boolean
   ai_category: string | null
   ai_vendor_type: string | null
   ai_summary: string | null

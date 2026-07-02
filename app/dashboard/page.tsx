@@ -25,6 +25,7 @@ export default async function DashboardPage() {
     LEFT JOIN vendors v ON t.assigned_vendor_id = v.id
     WHERE t.organization_id = ${orgId}
       AND t.status != 'cancelled'
+      AND t.is_draft = FALSE
     ORDER BY
       CASE t.urgency
         WHEN 'emergency' THEN 1

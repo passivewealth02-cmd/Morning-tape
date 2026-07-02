@@ -33,6 +33,7 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
     tenant_phone: '',
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [savingDraft, setSavingDraft] = useState(false)
   const [error, setError] = useState('')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
@@ -48,9 +49,9 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
     setPendingFiles(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const submit = async (asDraft: boolean) => {
     setStatus('loading')
+    setSavingDraft(asDraft)
     setError('')
 
     try {
@@ -64,12 +65,13 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
           tenant_name: form.tenant_name || null,
           tenant_email: form.tenant_email || null,
           tenant_phone: form.tenant_phone || null,
+          is_draft: asDraft,
         }),
       })
 
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to create ticket')
+        throw new Error(data.error || 'Failed to save ticket')
       }
 
       const ticket = await res.json()
@@ -84,8 +86,14 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
       router.push(`/dashboard/tickets/${ticket.id}`)
     } catch (err) {
       setStatus('error')
+      setSavingDraft(false)
       setError(err instanceof Error ? err.message : 'An error occurred')
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    submit(false)
   }
 
   return (
@@ -246,13 +254,13 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button
           type="submit"
           disabled={status === 'loading' || !form.title || !form.description}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {status === 'loading' ? (
+          {status === 'loading' && !savingDraft ? (
             'Creating ticket...'
           ) : (
             <>
@@ -263,6 +271,14 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
         </Button>
         <button
           type="button"
+          onClick={() => submit(true)}
+          disabled={status === 'loading' || !form.title || !form.description}
+          className="text-sm font-medium border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+        >
+          {status === 'loading' && savingDraft ? 'Saving draft…' : 'Save as draft'}
+        </button>
+        <button
+          type="button"
           onClick={() => router.back()}
           className="text-sm text-gray-500 hover:text-gray-700"
         >
@@ -270,7 +286,11 @@ export function NewTicketForm({ properties }: NewTicketFormProps) {
         </button>
       </div>
 
-      {status === 'loading' && (
+      <p className="text-xs text-gray-400">
+        “Save as draft” stores the request without running AI or notifying anyone — submit it later when you&apos;re ready.
+      </p>
+
+      {status === 'loading' && !savingDraft && (
         <p className="text-xs text-indigo-600 flex items-center gap-1.5">
           <Zap className="w-3 h-3" />
           AI is analyzing and categorizing your ticket...

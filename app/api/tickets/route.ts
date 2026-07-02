@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       LEFT JOIN units u ON u.id = t.unit_id
       LEFT JOIN vendors v ON v.id = t.assigned_vendor_id
       WHERE t.organization_id = ${user.organization_id}
+        AND t.is_draft = FALSE
         AND (${status}::text IS NULL OR t.status = ${status})
         AND (${urgency}::text IS NULL OR t.urgency = ${urgency})
         AND (${propertyId}::text IS NULL OR t.property_id = ${propertyId})
@@ -70,29 +71,33 @@ export async function POST(request: NextRequest) {
       tenant_name = null,
       tenant_email = null,
       tenant_phone = null,
+      is_draft = false,
     } = body
 
     if (!title || !description) {
       return NextResponse.json({ error: 'Title and description are required' }, { status: 400 })
     }
 
-    const orgRows = (await sql`
-      SELECT * FROM organizations WHERE id = ${user.organization_id}
-    `) as unknown as Organization[]
-    if (orgRows.length === 0) {
-      return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
-    }
-    const usage = await getUsage(user.organization_id)
-    const check = checkResourceLimit(getEffectivePlan(orgRows[0]), 'tickets_per_month', usage.tickets_this_month)
-    if (!check.allowed) {
-      return NextResponse.json(
-        {
-          error: `You've hit your monthly ticket limit (${check.current}/${check.limit}). Upgrade to ${check.upgrade_to ?? 'a higher plan'} to keep creating tickets.`,
-          limit_exceeded: true,
-          upgrade_to: check.upgrade_to,
-        },
-        { status: 402 }
-      )
+    // Drafts don't run AI or dispatch, so they don't count toward the monthly limit.
+    if (!is_draft) {
+      const orgRows = (await sql`
+        SELECT * FROM organizations WHERE id = ${user.organization_id}
+      `) as unknown as Organization[]
+      if (orgRows.length === 0) {
+        return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
+      }
+      const usage = await getUsage(user.organization_id)
+      const check = checkResourceLimit(getEffectivePlan(orgRows[0]), 'tickets_per_month', usage.tickets_this_month)
+      if (!check.allowed) {
+        return NextResponse.json(
+          {
+            error: `You've hit your monthly ticket limit (${check.current}/${check.limit}). Upgrade to ${check.upgrade_to ?? 'a higher plan'} to keep creating tickets.`,
+            limit_exceeded: true,
+            upgrade_to: check.upgrade_to,
+          },
+          { status: 402 }
+        )
+      }
     }
 
     // A property can only be referenced if it belongs to the caller's organization.
@@ -143,6 +148,7 @@ export async function POST(request: NextRequest) {
       tenant_phone,
       created_by: user.id,
       source: 'manual',
+      draft: Boolean(is_draft),
     })
 
     return NextResponse.json(ticket, { status: 201 })
