@@ -446,6 +446,29 @@ def content_revenue(img, cbox):
     d.text((colx[2] + 14, ry + rh / 2), "$97,920 / yr run-rate", font=fs(14), fill=PRIMARY, anchor="lm")
 
 
+def content_performance(img, cbox):
+    # sorted by views desc, matching the workbook
+    rows = [
+        ("Reply: how much I actually make", "TikTok", "148K", "11.2%", "+1,820", "1"),
+        ("The 2-folder content system", "TikTok", "112K", "10.1%", "+1,450", "2"),
+        ("3 tools I can't live without", "IG Reels", "96K", "9.4%", "+1,120", "3"),
+        ("$0 to $8k/mo as a creator", "YouTube", "84K", "7.8%", "+2,100", "4"),
+        ("5 Systems That 10x Your Output", "YouTube", "67K", "6.9%", "+1,580", "5"),
+        ("Editing hack reel", "IG Reels", "58K", "8.8%", "+720", "6"),
+        ("Carousel: 7 hooks that work", "Instagram", "42K", "8.6%", "+640", "7"),
+        ("Behind the scenes: my studio", "Instagram", "31K", "7.2%", "+380", "8"),
+        ("Weekly Q&A thread", "X", "21K", "3.4%", "+160", "9"),
+        ("Interview: scaling full-time", "Podcast", "12K", "6.1%", "+210", "10"),
+        ("The creator's tax checklist", "Blog", "9.8K", "4.5%", "+90", "11"),
+        ("How I plan a month in 90 min", "Newsletter", "6.2K", "41.2%", "+140", "12"),
+    ]
+    _table(img, cbox, "Content Performance Tracker",
+           "What's working — top performers ranked by views, engagement & followers gained",
+           ["CONTENT TITLE", "PLATFORM", "VIEWS", "ENGAGEMENT", "FOLLOWERS +", "RANK"],
+           [0.0, 0.42, 0.58, 0.70, 0.83, 0.94], rows,
+           status_col=5, status_map={"1": (MINT_BG, PRIMARY), "2": (MINT_BG, PRIMARY), "3": (MINT_BG, PRIMARY)})
+
+
 def content_sponsorship(img, cbox):
     rows = [
         ("Riverside", "Q3 integration", "$3,200", "Signed"),
@@ -561,15 +584,15 @@ def render_inside(out):
     img.convert("RGB").save(out, "PNG", optimize=True)
 
 
-def render_dashboard(out):
+def render_performance(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     premium_bg(img, band_h=360)
     d = ImageDraw.Draw(img)
-    pill(img, SIZE // 2, 116, "BUSINESS DASHBOARD", font=fs(34), pad_x=50, pad_y=22)
-    tc(d, (SIZE // 2, 232), "Your Whole Business, At A Glance", fserif(50), WHITE)
-    tc(d, (SIZE // 2, 300), "12 live KPIs + revenue, audience, content & expense charts — all auto-updating",
+    pill(img, SIZE // 2, 116, "CONTENT ANALYTICS", font=fs(34), pad_x=50, pad_y=22)
+    tc(d, (SIZE // 2, 232), "Know Exactly What's Working", fserif(52), WHITE)
+    tc(d, (SIZE // 2, 300), "Every post ranked — views, engagement & followers gained, top performers first",
        fs(23, bold=False), (226, 214, 190))
-    app_window(img, (70, 400, SIZE - 70, SIZE - 70), 0, content_dashboard)
+    app_window(img, (70, 400, SIZE - 70, SIZE - 70), 5, content_performance)
     img.convert("RGB").save(out, "PNG", optimize=True)
 
 
@@ -651,7 +674,7 @@ def main():
     targets = [
         ("01_hero.png", render_hero),
         ("02_inside.png", render_inside),
-        ("03_dashboard.png", render_dashboard),
+        ("03_performance.png", render_performance),
         ("04_revenue.png", render_revenue),
         ("05_monetize.png", render_monetize),
         ("06_mobile.png", render_mobile),
