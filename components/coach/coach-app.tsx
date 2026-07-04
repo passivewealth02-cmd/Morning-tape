@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import {
   Sparkles, Wand2, Copy, Check, RotateCcw, Save, Trash2, Palette,
   Type, LayoutGrid, AlertTriangle, Wind, ListChecks, Star, Lightbulb,
-  ImageIcon, Download, Loader2, RefreshCw,
+  ImageIcon, Download, Loader2, RefreshCw, Upload, X, ImagePlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,12 +31,15 @@ const ROLE_COLOR: Record<string, string> = {
 
 interface SavedRecipe { id: string; label: string; input: DesignInput }
 
+const MAX_REFS = 10
+
 export function CoachApp() {
   const [form, setForm] = useState<DesignInput>(EMPTY)
   const [objectsText, setObjectsText] = useState('')
   const [recipe, setRecipe] = useState<DesignRecipe | null>(null)
   const [saved, setSaved] = useState<SavedRecipe[]>([])
   const [variantIdx, setVariantIdx] = useState(1) // default to "Trendy Etsy"
+  const [refs, setRefs] = useState<string[]>([]) // reference images as data URLs
 
   useEffect(() => {
     try {
@@ -186,6 +189,8 @@ export function CoachApp() {
             </div>
           </Section>
 
+          <ReferenceUploader refs={refs} setRefs={setRefs} />
+
           <Section title="Try an example" icon={<Star className="h-4 w-4" />}>
             <div className="flex flex-wrap gap-2">
               {EXAMPLE_INPUTS.map((ex, i) => (
@@ -214,7 +219,7 @@ export function CoachApp() {
 
         {/* Output */}
         <div id="recipe-output">
-          {recipe ? <RecipeOutput recipe={recipe} onSave={saveCurrent} variantIdx={variantIdx} setVariantIdx={setVariantIdx} /> : <EmptyState />}
+          {recipe ? <RecipeOutput recipe={recipe} onSave={saveCurrent} variantIdx={variantIdx} setVariantIdx={setVariantIdx} refs={refs} /> : <EmptyState />}
         </div>
       </div>
     </main>
@@ -223,13 +228,102 @@ export function CoachApp() {
 
 // ---------------------------------------------------------------------------
 
+// Reads an image file and returns a downscaled JPEG data URL, so 10 references
+// stay a reasonable payload size to upload to the image model.
+function fileToScaledDataUrl(file: File, maxDim = 1024): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('read failed'))
+    reader.onload = () => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('decode failed'))
+      img.onload = () => {
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height))
+        const w = Math.round(img.width * scale)
+        const h = Math.round(img.height * scale)
+        const canvas = document.createElement('canvas')
+        canvas.width = w; canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return reject(new Error('no canvas'))
+        ctx.drawImage(img, 0, 0, w, h)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function ReferenceUploader({ refs, setRefs }: { refs: string[]; setRefs: React.Dispatch<React.SetStateAction<string[]>> }) {
+  const [busy, setBusy] = useState(false)
+
+  async function onFiles(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setBusy(true)
+    const room = MAX_REFS - refs.length
+    const picked = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, room)
+    const scaled: string[] = []
+    for (const f of picked) {
+      try { scaled.push(await fileToScaledDataUrl(f)) } catch { /* skip unreadable */ }
+    }
+    setRefs(prev => [...prev, ...scaled].slice(0, MAX_REFS))
+    setBusy(false)
+  }
+
+  const full = refs.length >= MAX_REFS
+
+  return (
+    <Section title="Reference images" icon={<ImagePlus className="h-4 w-4" />}>
+      <p className="text-sm text-muted-foreground mb-3">
+        Add up to {MAX_REFS} images (styles you like, colours, layouts). They&apos;ll steer the generated image — a visual brief for how you want it designed.
+      </p>
+
+      <label
+        className={cn(
+          'flex flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed p-5 text-center transition-colors',
+          full ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-primary hover:bg-accent/40',
+        )}
+      >
+        <Upload className="h-5 w-5 text-muted-foreground" />
+        <span className="text-sm font-medium">{full ? `Maximum ${MAX_REFS} reached` : busy ? 'Adding…' : 'Click to upload'}</span>
+        <span className="text-xs text-muted-foreground">{refs.length}/{MAX_REFS} added · PNG or JPG</span>
+        <input type="file" accept="image/*" multiple hidden disabled={full || busy} onChange={e => { onFiles(e.target.files); e.target.value = '' }} />
+      </label>
+
+      {refs.length > 0 && (
+        <>
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {refs.map((src, i) => (
+              <div key={i} className="group relative aspect-square overflow-hidden rounded-md border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt={`Reference ${i + 1}`} className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setRefs(prev => prev.filter((_, j) => j !== i))}
+                  className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  aria-label={`Remove reference ${i + 1}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={() => setRefs([])} className="mt-2 text-xs text-muted-foreground hover:text-destructive">
+            Clear all
+          </button>
+        </>
+      )}
+    </Section>
+  )
+}
+
 type ImageState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'done'; url: string }
   | { status: 'error'; message: string; needsKey: boolean }
 
-function ImagePanel({ prompt, phrase }: { prompt: string; phrase: string }) {
+function ImagePanel({ prompt, phrase, refs }: { prompt: string; phrase: string; refs: string[] }) {
   const [state, setState] = useState<ImageState>({ status: 'idle' })
 
   async function run() {
@@ -238,7 +332,7 @@ function ImagePanel({ prompt, phrase }: { prompt: string; phrase: string }) {
       const res = await fetch('/api/coach/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, references: refs }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -258,7 +352,10 @@ function ImagePanel({ prompt, phrase }: { prompt: string; phrase: string }) {
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-2 font-semibold"><ImageIcon className="h-4 w-4 text-pink-500" />Generate the image</div>
-          <p className="mt-1 text-sm text-muted-foreground">Render this recipe as a transparent-background PNG you can download.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Render this recipe as a transparent-background PNG you can download.
+            {refs.length > 0 && <> Using <span className="font-medium text-foreground">{refs.length} reference image{refs.length > 1 ? 's' : ''}</span> to steer the style.</>}
+          </p>
         </div>
         {state.status !== 'loading' && (
           <Button size="sm" className="gap-1.5" onClick={run}>
@@ -333,12 +430,13 @@ function EmptyState() {
 }
 
 function RecipeOutput({
-  recipe, onSave, variantIdx, setVariantIdx,
+  recipe, onSave, variantIdx, setVariantIdx, refs,
 }: {
   recipe: DesignRecipe
   onSave: () => void
   variantIdx: number
   setVariantIdx: (i: number) => void
+  refs: string[]
 }) {
   const { input, layout, canvas, textHierarchy: hero, objects, fonts, colours, score } = recipe
   const [savedFlash, setSavedFlash] = useState(false)
@@ -368,7 +466,7 @@ function RecipeOutput({
       </div>
 
       {/* Generate image */}
-      <ImagePanel prompt={recipe.aiPrompt} phrase={input.phrase} />
+      <ImagePanel prompt={recipe.aiPrompt} phrase={input.phrase} refs={refs} />
 
       {/* Score breakdown */}
       <Panel icon={<Star className="h-4 w-4" />} title="Design score" subtitle="Typical first attempt vs. this recipe applied">

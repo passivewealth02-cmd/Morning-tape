@@ -38,10 +38,21 @@ Implemented against the PRD:
   "copy the prompt into your own tool" message, so the coach still works.
 - Saved recipes via `localStorage`.
 
+## Reference images
+
+The left rail has a **Reference images** uploader (up to 10). Images are
+downscaled client-side (max 1024px, JPEG) so the payload stays small, kept as
+data URLs in component state, and passed to the image route. When present, the
+route uses the image-**edit** endpoint (`/images/edits`) so the model treats
+them as a visual brief for palette, layout and style — otherwise it does a
+plain text-to-image generation. References are a UI/generation input only;
+they don't change the deterministic text recipe.
+
 ## Image generation
 
 `lib/design-coach/image.ts` calls an OpenAI-style `/images/generations`
-endpoint and returns a base64 PNG data URL. `app/api/coach/image/route.ts`
+endpoint (or `/images/edits` when references are supplied) and returns a
+base64 PNG data URL. `app/api/coach/image/route.ts`
 exposes it as `POST /api/coach/image { prompt }`. Configure with:
 
 | Env | Default | Purpose |

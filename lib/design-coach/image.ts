@@ -19,11 +19,26 @@ export type ImageResult =
 const DEFAULT_MODEL = 'gpt-image-1'
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 
+const MAX_REFERENCES = 10
+
 export function imageGenerationConfigured(): boolean {
   return Boolean(process.env.OPENAI_API_KEY)
 }
 
-export async function generateDesignImage(prompt: string): Promise<ImageResult> {
+function dataUrlToBlob(dataUrl: string): Blob | null {
+  const m = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(dataUrl)
+  if (!m) return null
+  try {
+    return new Blob([Buffer.from(m[2], 'base64')], { type: m[1] })
+  } catch {
+    return null
+  }
+}
+
+// `references` are data URLs of images the user uploaded as a visual brief.
+// When present, we call the image-edit endpoint so the model uses them as
+// style guidance; otherwise we do a plain text-to-image generation.
+export async function generateDesignImage(prompt: string, references: string[] = []): Promise<ImageResult> {
   const key = process.env.OPENAI_API_KEY
   if (!key) {
     return {
@@ -42,23 +57,47 @@ export async function generateDesignImage(prompt: string): Promise<ImageResult> 
   const model = process.env.COACH_IMAGE_MODEL || DEFAULT_MODEL
   const baseUrl = (process.env.COACH_IMAGE_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
 
+  const refBlobs = references
+    .slice(0, MAX_REFERENCES)
+    .map(dataUrlToBlob)
+    .filter((b): b is Blob => b !== null)
+
   try {
-    const res = await fetch(`${baseUrl}/images/generations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model,
-        prompt: cleaned.slice(0, 4000),
-        // Portrait, close to a shirt/print ratio.
-        size: '1024x1536',
-        // gpt-image-1 only: transparent PNG, exactly what print sellers want.
-        background: 'transparent',
-        n: 1,
-      }),
-    })
+    let res: Response
+    if (refBlobs.length > 0) {
+      // Image-edit endpoint: uploaded references steer the generated design.
+      const form = new FormData()
+      form.append('model', model)
+      form.append(
+        'prompt',
+        (cleaned + ' Use the uploaded reference images as visual guidance for the style, palette and layout.').slice(0, 4000),
+      )
+      form.append('size', '1024x1536')
+      form.append('background', 'transparent')
+      refBlobs.forEach((blob, i) => form.append('image[]', blob, `reference-${i + 1}.png`))
+      res = await fetch(`${baseUrl}/images/edits`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+      })
+    } else {
+      res = await fetch(`${baseUrl}/images/generations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model,
+          prompt: cleaned.slice(0, 4000),
+          // Portrait, close to a shirt/print ratio.
+          size: '1024x1536',
+          // gpt-image-1 only: transparent PNG, exactly what print sellers want.
+          background: 'transparent',
+          n: 1,
+        }),
+      })
+    }
 
     if (!res.ok) {
       let detail = `Image provider returned ${res.status}.`
