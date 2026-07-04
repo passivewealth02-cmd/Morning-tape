@@ -19,6 +19,11 @@ export type VibeId =
   | 'minimal'
   | 'boho'
   | 'cozy'
+  | 'varsity'
+  | 'coquette'
+  | 'sketch'
+  | 'glam'
+  | 'edgy'
 
 export const VIBES: Record<VibeId, { label: string; keywords: string[] }> = {
   'cute-retro': { label: 'Cute Retro', keywords: ['cute retro', 'cute', 'retro cute', 'playful retro', 'warm retro', 'retro'] },
@@ -29,6 +34,11 @@ export const VIBES: Record<VibeId, { label: string; keywords: string[] }> = {
   minimal: { label: 'Minimal / Modern', keywords: ['minimal', 'modern', 'clean', 'simple', 'neutral', 'classy', 'chic', 'aesthetic'] },
   boho: { label: 'Boho / Earthy', keywords: ['boho', 'earthy', 'natural', 'sage', 'muted', 'organic', 'terracotta'] },
   cozy: { label: 'Cozy / Vintage', keywords: ['cozy', 'cosy', 'vintage', 'warm', 'coffee', 'fall', 'autumn', 'cabin', 'christmas'] },
+  varsity: { label: 'Varsity / Collegiate', keywords: ['varsity', 'collegiate', 'athletic', 'college', 'sporty', 'block', 'arched'] },
+  coquette: { label: 'Coquette / Line Art', keywords: ['coquette', 'line art', 'lineart', 'dainty', 'ribbon', 'delicate', 'single color', 'minimal line', 'sketch line'] },
+  sketch: { label: 'Sketch / Marker Doodle', keywords: ['sketch', 'doodle', 'marker', 'hand drawn', 'handdrawn', 'scribble', 'two tone', 'two-tone', 'brush'] },
+  glam: { label: 'Leopard Glam', keywords: ['leopard', 'glam', 'cheetah', 'animal print', 'glitter', 'luxe', 'glitzy'] },
+  edgy: { label: 'Edgy / Checkered', keywords: ['edgy', 'checkered', 'checkerboard', 'grunge', 'punk', 'graffiti', 'y2k'] },
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +129,11 @@ export const LAYOUT_PREFERENCE: Record<VibeId, LayoutId[]> = {
   minimal: ['minimal-typography', 'stacked-typography', 'badge-circle'],
   boho: ['wreath-corner', 'minimal-typography', 'stacked-typography'],
   cozy: ['stacked-typography', 'wreath-corner', 'center-object'],
+  varsity: ['retro-arch', 'stacked-typography', 'minimal-typography'],
+  coquette: ['center-object', 'three-frame', 'minimal-typography'],
+  sketch: ['center-object', 'stacked-typography', 'three-frame'],
+  glam: ['stacked-typography', 'retro-arch', 'center-object'],
+  edgy: ['stacked-typography', 'retro-arch', 'three-frame'],
 }
 
 // ---------------------------------------------------------------------------
@@ -255,6 +270,86 @@ export const PALETTES: Record<VibeId, ColourRecipe> = {
       'Layer a soft caramel shadow behind the hero word for warmth.',
     ],
   },
+  varsity: {
+    name: 'Varsity Pastel',
+    swatches: [
+      { role: 'Dark anchor', name: 'Slate navy', hex: '#33415C', usage: 'The block-letter outline and any tiny text.' },
+      { role: 'Main text', name: 'Powder pink', hex: '#F3B6C6', usage: 'The big collegiate block letters.' },
+      { role: 'Secondary text', name: 'Mint', hex: '#9FD6C9', usage: 'The connector word (e.g. the script “and”).' },
+      { role: 'Accent', name: 'Sky blue', hex: '#8FC1E3', usage: 'A second outline pass or small accent.' },
+      { role: 'Highlight', name: 'Cream', hex: '#FBF3E4', usage: 'Inner highlight and grain texture base.' },
+      { role: 'Object colour', name: 'Soft coral', hex: '#E79A9A', usage: 'Any small object or underline.' },
+    ],
+    usageNotes: [
+      'Give the block letters a double outline (mint over navy) — that’s the collegiate look.',
+      'Add a light speckled/distressed texture inside the letters, not over the outline.',
+      'Keep it to two soft tones plus the outline so it stays clean at thumbnail size.',
+    ],
+  },
+  coquette: {
+    name: 'Coquette Ribbon',
+    swatches: [
+      { role: 'Dark anchor', name: 'Denim blue', hex: '#3E5C8A', usage: 'The single line-art colour for icons and script.' },
+      { role: 'Main text', name: 'Denim blue', hex: '#3E5C8A', usage: 'The script phrase, same delicate line weight.' },
+      { role: 'Secondary text', name: 'Dusty blue', hex: '#7C9CC4', usage: 'A lighter second line if needed.' },
+      { role: 'Accent', name: 'Blush pink', hex: '#E7B7C4', usage: 'One soft blush touch — a bow or heart.' },
+      { role: 'Highlight', name: 'Cream', hex: '#F6EFE7', usage: 'Leave the background clean/transparent.' },
+      { role: 'Object colour', name: 'Denim blue', hex: '#3E5C8A', usage: 'Line-art icons (bow, boot, hat, horseshoe).' },
+    ],
+    usageNotes: [
+      'Stay one-colour and thin-lined — coquette is about delicate line art, not fills.',
+      'A small row of line-art icons above a flowing script is the signature layout.',
+      'Add at most one blush accent so it stays soft and minimal.',
+    ],
+  },
+  sketch: {
+    name: 'Two-Tone Marker',
+    swatches: [
+      { role: 'Dark anchor', name: 'Cobalt blue', hex: '#1E6FE0', usage: 'Hand-drawn object outlines and one text colour.' },
+      { role: 'Main text', name: 'Bright orange', hex: '#F0501E', usage: 'The marker-brush hero words.' },
+      { role: 'Secondary text', name: 'Cobalt blue', hex: '#1E6FE0', usage: 'The alternating words in the phrase.' },
+      { role: 'Accent', name: 'Sky blue', hex: '#5FA8F0', usage: 'Small fills inside objects (e.g. coffee).' },
+      { role: 'Highlight', name: 'Off white', hex: '#FBFAF6', usage: 'Keep the background clean/transparent.' },
+      { role: 'Object colour', name: 'Cobalt blue', hex: '#1E6FE0', usage: 'Doodled book, mug, heart line art.' },
+    ],
+    usageNotes: [
+      'Commit to exactly two marker colours — alternate them word by word.',
+      'Everything looks hand-drawn: wobbly brush letters and loose doodle icons.',
+      'Overlap the doodle objects slightly with the words for an energetic sketchbook feel.',
+    ],
+  },
+  glam: {
+    name: 'Leopard Glam',
+    swatches: [
+      { role: 'Dark anchor', name: 'Black', hex: '#1A1A1A', usage: 'Outlines, the script word, and leopard spots.' },
+      { role: 'Main text', name: 'Blush pink', hex: '#E7A9B4', usage: 'One or two solid words.' },
+      { role: 'Secondary text', name: 'Warm tan', hex: '#C9A57B', usage: 'The alternating solid word.' },
+      { role: 'Accent', name: 'Leopard gold', hex: '#B98A4E', usage: 'The leopard-print fill base.' },
+      { role: 'Highlight', name: 'Cream', hex: '#F3E9DA', usage: 'Inner glow behind the letters.' },
+      { role: 'Object colour', name: 'Black', hex: '#1A1A1A', usage: 'Hearts, stars and the pencil underline.' },
+    ],
+    usageNotes: [
+      'Put leopard print inside ONE word and keep the rest solid — too much print gets noisy.',
+      'Outline everything in black so blush and tan stay crisp and readable.',
+      'Neutrals + one blush pop is the glam formula; add tiny leopard hearts as accents.',
+    ],
+  },
+  edgy: {
+    name: 'Hot Pink Checker',
+    swatches: [
+      { role: 'Dark anchor', name: 'Ink black', hex: '#141414', usage: 'Grunge brush words, outlines, checkerboard squares.' },
+      { role: 'Main text', name: 'Hot pink', hex: '#E6197F', usage: 'The loud brush/spray words.' },
+      { role: 'Secondary text', name: 'Ink black', hex: '#141414', usage: 'The alternating grunge word.' },
+      { role: 'Accent', name: 'White', hex: '#FFFFFF', usage: 'The other half of the checkerboard.' },
+      { role: 'Highlight', name: 'Bubble pink', hex: '#F49FC6', usage: 'A soft glow or second pink.' },
+      { role: 'Object colour', name: 'Hot pink', hex: '#E6197F', usage: 'Apple, pencil, lightning, crown, stars.' },
+    ],
+    usageNotes: [
+      'Mix textures on purpose: checkerboard fill on some letters, spray/brush on others.',
+      'Keep it to hot pink + black + white so the chaos still reads as one design.',
+      'Doodle extras (crown, lightning bolt, scribble stars) sell the edgy/Y2K vibe.',
+    ],
+  },
 }
 
 // ---------------------------------------------------------------------------
@@ -317,6 +412,41 @@ export const FONT_PAIRINGS: Record<VibeId, FontPairing> = {
     secondaryFont: { role: 'Supporting line', style: 'Casual handwritten', example: 'A relaxed handwriting font' },
     warnings: ['Two fonts max.', 'Keep the handwritten line short so it stays legible at thumbnail size.'],
     hierarchyNote: 'Warm serif hero word up top; handwritten tagline for a homey touch.',
+  },
+  varsity: {
+    name: 'Collegiate Block + Script',
+    mainFont: { role: 'Hero words', style: 'Collegiate athletic block serif (arched)', example: 'A varsity / college block font' },
+    secondaryFont: { role: 'Connector word', style: 'Retro script for the small “and/&”', example: 'A vintage script' },
+    warnings: ['Two fonts max.', 'Keep the block letters even along the arch; the script is only for the tiny connector word.'],
+    hierarchyNote: 'Big arched block words carry it; a small script word nestles between the lines.',
+  },
+  coquette: {
+    name: 'Delicate Script + Line Caps',
+    mainFont: { role: 'Hero phrase', style: 'Flowing delicate script', example: 'An airy signature script' },
+    secondaryFont: { role: 'Supporting line', style: 'Light spaced serif caps', example: 'A thin all-caps serif' },
+    warnings: ['Two fonts max.', 'Keep line weights thin and consistent so it stays dainty.'],
+    hierarchyNote: 'The script leads; delicate line-art icons sit above it as the “title”.',
+  },
+  sketch: {
+    name: 'Marker Brush + Doodle Caps',
+    mainFont: { role: 'Hero words', style: 'Hand-drawn marker brush script', example: 'A loose brush marker font' },
+    secondaryFont: { role: 'Alt words', style: 'Rough hand-drawn caps', example: 'A sketchy marker capital' },
+    warnings: ['Two fonts max.', 'Everything should look hand-drawn — avoid any clean/geometric font here.'],
+    hierarchyNote: 'Alternate brush script and rough caps line by line for the sketchbook feel.',
+  },
+  glam: {
+    name: 'Bold Serif Caps + Brush Script',
+    mainFont: { role: 'Hero words', style: 'Bold serif caps (one word leopard-filled)', example: 'A high-contrast serif' },
+    secondaryFont: { role: 'Script word', style: 'Confident brush script', example: 'A glossy brush script' },
+    warnings: ['Two fonts max.', 'Put print/pattern in only one word; keep the rest solid so it reads.'],
+    hierarchyNote: 'Solid serif caps plus one patterned word; a brush script closes it out.',
+  },
+  edgy: {
+    name: 'Grunge Brush + Checker Caps',
+    mainFont: { role: 'Hero words', style: 'Grungy spray/brush display', example: 'A distressed brush font' },
+    secondaryFont: { role: 'Alt words', style: 'Bold caps for checkerboard fill', example: 'A heavy blocky sans' },
+    warnings: ['Two fonts max.', 'Mixing textures is the look — but keep the palette to pink, black and white.'],
+    hierarchyNote: 'Loud brush words trade off with checkerboard-filled caps line by line.',
   },
 }
 
@@ -388,6 +518,29 @@ export const OBJECT_CATALOG: Record<string, ObjectMeta> = {
   stethoscope: { role: 'main', rotation: 'slight curve', size: '~40% of hero word width' },
   syringe: { role: 'supporting', rotation: '15–20 degrees', size: 'thin' },
   cross: { role: 'filler', rotation: 'none', size: 'small' },
+  // Western + coquette line-art motifs
+  boot: { role: 'supporting', rotation: 'none', size: '~65% of main object' },
+  boots: { role: 'supporting', rotation: 'none', size: '~70% of main object' },
+  'cowboy boot': { role: 'supporting', rotation: 'none', size: '~65% of main object' },
+  'cowboy hat': { role: 'main', rotation: 'slight tilt', size: '~40% of hero word width' },
+  hat: { role: 'main', rotation: 'slight tilt', size: '~40% of hero word width' },
+  horseshoe: { role: 'supporting', rotation: 'none', size: '~55% of main object' },
+  bandana: { role: 'filler', rotation: 'none', size: 'small' },
+  ribbon: { role: 'supporting', rotation: 'none', size: '~50% of main object' },
+  // Storybook / whimsical + funny-pet motifs
+  frog: { role: 'main', rotation: 'none', size: 'center-weight' },
+  sword: { role: 'supporting', rotation: '10–15 degrees', size: 'thin, tall' },
+  dog: { role: 'main', rotation: 'none', size: 'center-weight' },
+  cat: { role: 'main', rotation: 'none', size: 'center-weight' },
+  beer: { role: 'supporting', rotation: 'none', size: '~55% of main object' },
+  sunglasses: { role: 'filler', rotation: 'slight tilt', size: 'small' },
+  // Edgy / Y2K doodle motifs
+  lightning: { role: 'filler', rotation: 'none', size: 'small' },
+  bolt: { role: 'filler', rotation: 'none', size: 'small' },
+  crown: { role: 'filler', rotation: 'slight tilt', size: 'small' },
+  // Coffee/bookish extras
+  'coffee mug': { role: 'main', rotation: 'none', size: 'center-weight' },
+  glasses: { role: 'filler', rotation: 'none', size: 'small' },
 }
 
 // ---------------------------------------------------------------------------
