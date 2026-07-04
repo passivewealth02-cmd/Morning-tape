@@ -32,7 +32,28 @@ Implemented against the PRD:
 - **Auto-Fix suggestions** (Feature 9) — surfaced as warnings + exact steps.
 - **Generate 3 Better Versions** (Feature 11) — Clean / Trendy / Playful.
 - **AI Prompt Generator** (Feature 12).
+- **Generate image** — renders the recipe into an actual transparent-background
+  PNG via an image model (OpenAI `gpt-image-1` by default). Optional: set
+  `OPENAI_API_KEY` to enable it. Without a key the button shows a friendly
+  "copy the prompt into your own tool" message, so the coach still works.
 - Saved recipes via `localStorage`.
+
+## Image generation
+
+`lib/design-coach/image.ts` calls an OpenAI-style `/images/generations`
+endpoint and returns a base64 PNG data URL. `app/api/coach/image/route.ts`
+exposes it as `POST /api/coach/image { prompt }`. Configure with:
+
+| Env | Default | Purpose |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | — | Required to enable image generation. |
+| `COACH_IMAGE_MODEL` | `gpt-image-1` | Swap the model. |
+| `COACH_IMAGE_BASE_URL` | OpenAI API | Point at any OpenAI-compatible host. |
+
+The route returns `422 {code:"no_key"}` when unconfigured, `502` on provider
+errors, and `{dataUrl, model}` on success. `gpt-image-1` is chosen because it
+supports `background: "transparent"` — exactly what print-on-demand sellers
+need.
 
 ## Code map
 

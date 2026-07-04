@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import {
   Sparkles, Wand2, Copy, Check, RotateCcw, Save, Trash2, Palette,
   Type, LayoutGrid, AlertTriangle, Wind, ListChecks, Star, Lightbulb,
+  ImageIcon, Download, Loader2, RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -222,6 +223,99 @@ export function CoachApp() {
 
 // ---------------------------------------------------------------------------
 
+type ImageState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'done'; url: string }
+  | { status: 'error'; message: string; needsKey: boolean }
+
+function ImagePanel({ prompt, phrase }: { prompt: string; phrase: string }) {
+  const [state, setState] = useState<ImageState>({ status: 'idle' })
+
+  async function run() {
+    setState({ status: 'loading' })
+    try {
+      const res = await fetch('/api/coach/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setState({ status: 'error', message: data?.error ?? 'Something went wrong.', needsKey: data?.code === 'no_key' })
+        return
+      }
+      setState({ status: 'done', url: data.dataUrl })
+    } catch {
+      setState({ status: 'error', message: 'Could not reach the server. Try again.', needsKey: false })
+    }
+  }
+
+  const fileName = (phrase || 'design').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'design'
+
+  return (
+    <div className="rounded-xl border bg-card p-5 shadow-sm">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2 font-semibold"><ImageIcon className="h-4 w-4 text-pink-500" />Generate the image</div>
+          <p className="mt-1 text-sm text-muted-foreground">Render this recipe as a transparent-background PNG you can download.</p>
+        </div>
+        {state.status !== 'loading' && (
+          <Button size="sm" className="gap-1.5" onClick={run}>
+            {state.status === 'done' ? <RefreshCw className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+            {state.status === 'done' ? 'Regenerate' : 'Generate image'}
+          </Button>
+        )}
+      </div>
+
+      {state.status === 'idle' && (
+        <div className="flex min-h-[140px] flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 p-6 text-center">
+          <ImageIcon className="mb-2 h-6 w-6 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Click <span className="font-medium text-foreground">Generate image</span> to turn the recipe into artwork.</p>
+        </div>
+      )}
+
+      {state.status === 'loading' && (
+        <div className="flex min-h-[220px] flex-col items-center justify-center rounded-lg border bg-muted/20 p-6 text-center">
+          <Loader2 className="mb-3 h-7 w-7 animate-spin text-primary" />
+          <p className="text-sm font-medium">Designing your PNG…</p>
+          <p className="mt-1 text-xs text-muted-foreground">This usually takes 10–25 seconds.</p>
+        </div>
+      )}
+
+      {state.status === 'done' && (
+        <div className="space-y-3">
+          <div className="overflow-hidden rounded-lg border bg-[repeating-conic-gradient(#0000000a_0_25%,transparent_0_50%)] bg-[length:20px_20px] p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={state.url} alt={`Generated design for “${phrase}”`} className="mx-auto max-h-[560px] w-auto rounded" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a href={state.url} download={`${fileName}.png`}>
+              <Button size="sm" variant="outline" className="gap-1.5"><Download className="h-4 w-4" /> Download PNG</Button>
+            </a>
+          </div>
+        </div>
+      )}
+
+      {state.status === 'error' && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+          <div className="flex gap-2 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+            <div>
+              <p className="text-foreground/90">{state.message}</p>
+              {state.needsKey && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  You can still copy the AI prompt below and paste it into any image tool (ChatGPT, Ideogram, Midjourney).
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function EmptyState() {
   return (
     <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed bg-card/40 p-10 text-center">
@@ -272,6 +366,9 @@ function RecipeOutput({
           </Button>
         </div>
       </div>
+
+      {/* Generate image */}
+      <ImagePanel prompt={recipe.aiPrompt} phrase={input.phrase} />
 
       {/* Score breakdown */}
       <Panel icon={<Star className="h-4 w-4" />} title="Design score" subtitle="Typical first attempt vs. this recipe applied">
