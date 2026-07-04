@@ -24,13 +24,16 @@ export type VibeId =
   | 'sketch'
   | 'glam'
   | 'edgy'
+  | 'cartoon'
+  | 'bright-doodle'
+  | 'watercolor'
 
 export const VIBES: Record<VibeId, { label: string; keywords: string[] }> = {
   'cute-retro': { label: 'Cute Retro', keywords: ['cute retro', 'cute', 'retro cute', 'playful retro', 'warm retro', 'retro'] },
   'groovy-retro': { label: 'Groovy / Trendy Retro', keywords: ['groovy', 'trendy', 'wavy', '70s', 'seventies', 'hippie', 'psychedelic', 'retro groovy'] },
   western: { label: 'Western', keywords: ['western', 'cowboy', 'cowgirl', 'rodeo', 'desert', 'country', 'howdy'] },
   'soft-feminine': { label: 'Soft Feminine', keywords: ['feminine', 'soft', 'floral', 'pretty', 'elegant', 'romantic', 'wedding', 'girly'] },
-  kids: { label: 'Kids / Bubbly', keywords: ['kids', 'kid', 'baby', 'bubble', 'bubbly', 'fun', 'cartoon', 'birthday'] },
+  kids: { label: 'Kids / Bubbly', keywords: ['kids', 'kid', 'baby', 'bubble', 'bubbly', 'fun', 'birthday'] },
   minimal: { label: 'Minimal / Modern', keywords: ['minimal', 'modern', 'clean', 'simple', 'neutral', 'classy', 'chic', 'aesthetic'] },
   boho: { label: 'Boho / Earthy', keywords: ['boho', 'earthy', 'natural', 'sage', 'muted', 'organic', 'terracotta'] },
   cozy: { label: 'Cozy / Vintage', keywords: ['cozy', 'cosy', 'vintage', 'warm', 'coffee', 'fall', 'autumn', 'cabin', 'christmas'] },
@@ -39,6 +42,9 @@ export const VIBES: Record<VibeId, { label: string; keywords: string[] }> = {
   sketch: { label: 'Sketch / Marker Doodle', keywords: ['sketch', 'doodle', 'marker', 'hand drawn', 'handdrawn', 'scribble', 'two tone', 'two-tone', 'brush'] },
   glam: { label: 'Leopard Glam', keywords: ['leopard', 'glam', 'cheetah', 'animal print', 'glitter', 'luxe', 'glitzy'] },
   edgy: { label: 'Edgy / Checkered', keywords: ['edgy', 'checkered', 'checkerboard', 'grunge', 'punk', 'graffiti', 'y2k'] },
+  cartoon: { label: 'Cartoon Characters', keywords: ['cartoon', 'character', 'characters', 'mascot', 'kawaii', 'silly', 'cute food', 'smiley'] },
+  'bright-doodle': { label: 'Bright Doodle Letters', keywords: ['colorful', 'colourful', 'bright', 'multicolor', 'multicolour', 'puffy', 'preppy', 'hand lettered', 'rainbow letters'] },
+  watercolor: { label: 'Watercolor Floral', keywords: ['watercolor', 'watercolour', 'painted', 'painterly', 'botanical', 'soft floral', 'personalized'] },
 }
 
 // ---------------------------------------------------------------------------
@@ -134,6 +140,9 @@ export const LAYOUT_PREFERENCE: Record<VibeId, LayoutId[]> = {
   sketch: ['center-object', 'stacked-typography', 'three-frame'],
   glam: ['stacked-typography', 'retro-arch', 'center-object'],
   edgy: ['stacked-typography', 'retro-arch', 'three-frame'],
+  cartoon: ['three-frame', 'center-object', 'stacked-typography'],
+  'bright-doodle': ['stacked-typography', 'retro-arch', 'three-frame'],
+  watercolor: ['center-object', 'wreath-corner', 'stacked-typography'],
 }
 
 // ---------------------------------------------------------------------------
@@ -350,6 +359,54 @@ export const PALETTES: Record<VibeId, ColourRecipe> = {
       'Doodle extras (crown, lightning bolt, scribble stars) sell the edgy/Y2K vibe.',
     ],
   },
+  cartoon: {
+    name: 'Cartoon Pop',
+    swatches: [
+      { role: 'Dark anchor', name: 'Ink black', hex: '#2B2B2B', usage: 'Thin character outlines, faces, arms and legs.' },
+      { role: 'Main text', name: 'Leaf green', hex: '#6AA84F', usage: 'Any title text or a character.' },
+      { role: 'Secondary text', name: 'Warm tan', hex: '#D9A46A', usage: 'Labels and secondary bits.' },
+      { role: 'Accent', name: 'Sunny yellow', hex: '#F2C744', usage: 'Little stars and sparkles.' },
+      { role: 'Highlight', name: 'Cheek pink', hex: '#F4A9B8', usage: 'Rosy cheeks and small hearts.' },
+      { role: 'Object colour', name: 'Fresh green', hex: '#7BAE3F', usage: 'The main cute characters.' },
+    ],
+    usageNotes: [
+      'The cute characters ARE the design — keep any text small and let them lead.',
+      'Give every character the same thin black outline, dot eyes, a smile and rosy cheeks.',
+      'Space characters evenly in a row with tiny stars filling the gaps.',
+    ],
+  },
+  'bright-doodle': {
+    name: 'Bright Doodle',
+    swatches: [
+      { role: 'Dark anchor', name: 'Gold', hex: '#D4A72C', usage: 'The glittery outline around every letter.' },
+      { role: 'Main text', name: 'Hot pink', hex: '#EC5C8D', usage: 'Some of the puffy letters.' },
+      { role: 'Secondary text', name: 'Periwinkle', hex: '#9B8FE4', usage: 'More of the letters (each one differs).' },
+      { role: 'Accent', name: 'Tangerine', hex: '#F26B21', usage: 'More letters plus small accents.' },
+      { role: 'Highlight', name: 'Butter yellow', hex: '#F6D65B', usage: 'More letters and glow.' },
+      { role: 'Object colour', name: 'Grass green', hex: '#6FBF73', usage: 'Doodle hearts, flowers, smileys.' },
+    ],
+    usageNotes: [
+      'Make every letter a different bright colour, all wrapped in the same gold glitter outline.',
+      'Scatter tiny doodles — hearts, flowers, stars, a smiley — around the words.',
+      'The gold outline is what ties the rainbow of letters together; keep it on all of them.',
+    ],
+  },
+  watercolor: {
+    name: 'Watercolor Garden',
+    swatches: [
+      { role: 'Dark anchor', name: 'Soft charcoal', hex: '#4A4A4A', usage: 'The thin script name and any small labels.' },
+      { role: 'Main text', name: 'Rose pink', hex: '#E38AA0', usage: 'A warm floral tone for accents/text.' },
+      { role: 'Secondary text', name: 'Sage green', hex: '#8FB07A', usage: 'Leaves and stems.' },
+      { role: 'Accent', name: 'Lavender', hex: '#A98CD1', usage: 'Some blooms and small flowers.' },
+      { role: 'Highlight', name: 'Buttercup', hex: '#F3C64B', usage: 'Sunny flower centres and warmth.' },
+      { role: 'Object colour', name: 'Coral', hex: '#EE9B7A', usage: 'Painted books, petals and objects.' },
+    ],
+    usageNotes: [
+      'Everything is soft painterly washes — no hard outlines, let colours bleed gently.',
+      'Flowers and greenery grow up and out of the central object (books, a mug, a name).',
+      'Set the name/phrase in a thin dark script so it stays readable over the soft colour.',
+    ],
+  },
 }
 
 // ---------------------------------------------------------------------------
@@ -448,6 +505,27 @@ export const FONT_PAIRINGS: Record<VibeId, FontPairing> = {
     warnings: ['Two fonts max.', 'Mixing textures is the look — but keep the palette to pink, black and white.'],
     hierarchyNote: 'Loud brush words trade off with checkerboard-filled caps line by line.',
   },
+  cartoon: {
+    name: 'Rounded Marker + Simple Sans',
+    mainFont: { role: 'Title (small)', style: 'Chunky rounded marker', example: 'A playful rounded marker font' },
+    secondaryFont: { role: 'Labels', style: 'Simple friendly sans', example: 'A plain rounded sans' },
+    warnings: ['Two fonts max.', 'Keep text minimal — the characters carry the design, not the type.'],
+    hierarchyNote: 'A small friendly title sits above or below the row of cute characters.',
+  },
+  'bright-doodle': {
+    name: 'Puffy Hand-Lettered + Sans',
+    mainFont: { role: 'Hero words', style: 'Puffy hand-drawn bubble caps', example: 'A rounded marker/bubble font' },
+    secondaryFont: { role: 'Tiny extras', style: 'Simple rounded sans', example: 'A friendly small sans' },
+    warnings: ['Two fonts max.', 'Let colour do the work — one puffy lettering style, many colours.'],
+    hierarchyNote: 'Big multicolour puffy words stacked; doodles fill the corners.',
+  },
+  watercolor: {
+    name: 'Flowing Script + Serif Labels',
+    mainFont: { role: 'Name / phrase', style: 'Thin flowing script', example: 'A delicate signature script' },
+    secondaryFont: { role: 'Small labels', style: 'Simple serif caps', example: 'A light serif for book spines/labels' },
+    warnings: ['Two fonts max.', 'Keep the script dark and thin so it reads over soft watercolour.'],
+    hierarchyNote: 'Painterly art leads; a thin script name anchors the bottom.',
+  },
 }
 
 // Optional accent font guidance when a design genuinely needs a third font.
@@ -541,6 +619,14 @@ export const OBJECT_CATALOG: Record<string, ObjectMeta> = {
   // Coffee/bookish extras
   'coffee mug': { role: 'main', rotation: 'none', size: 'center-weight' },
   glasses: { role: 'filler', rotation: 'none', size: 'small' },
+  // Cartoon character + doodle motifs
+  pickle: { role: 'main', rotation: 'slight tilt', size: 'center-weight character' },
+  cucumber: { role: 'main', rotation: 'slight tilt', size: 'center-weight character' },
+  jar: { role: 'supporting', rotation: 'none', size: '~70% of main object' },
+  smiley: { role: 'filler', rotation: 'none', size: 'small' },
+  'smiley face': { role: 'filler', rotation: 'none', size: 'small' },
+  pennant: { role: 'supporting', rotation: 'slight tilt', size: '~45% of main object' },
+  flag: { role: 'supporting', rotation: 'slight tilt', size: '~45% of main object' },
 }
 
 // ---------------------------------------------------------------------------

@@ -37,15 +37,23 @@ function norm(s: string): string {
   return s.toLowerCase().trim()
 }
 
-/** Best-guess the vibe from the style text, then colour vibe, then niche. */
+/** Best-guess the vibe from the style text, then colour vibe, then niche.
+ *  Picks the vibe whose *longest* keyword matches, so specific styles
+ *  ("watercolor", "collegiate") win over generic ones ("floral", "retro"). */
 export function resolveVibe(input: DesignInput): VibeId {
   const haystacks = [input.style, input.colourVibe, input.notes].map(norm)
 
+  let best: VibeId | null = null
+  let bestLen = 0
   for (const [vibe, def] of Object.entries(VIBES) as [VibeId, { keywords: string[] }][]) {
     for (const kw of def.keywords) {
-      if (haystacks.some(h => h.includes(kw))) return vibe
+      if (kw.length > bestLen && haystacks.some(h => h.includes(kw))) {
+        best = vibe
+        bestLen = kw.length
+      }
     }
   }
+  if (best) return best
 
   // Fall back to the niche's default vibe.
   const niche = norm(input.niche)
