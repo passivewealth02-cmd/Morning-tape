@@ -1,0 +1,637 @@
+"""Marketing image set for Road Trip Command Center™ (6 images, 2000x2000).
+
+Dense app-screenshot marketing mirroring the real workbook: a left sidebar of
+all 19 tabs, the REAL computed KPI numbers, and fully populated tables/charts.
+
+  01_hero.png       - branded hero + live road trip dashboard
+  02_inside.png     - "everything inside — 19 powerful tabs"
+  03_route.png      - route planner (daily miles & drive time)
+  04_budget.png     - road trip budget command center
+  05_ready.png      - vehicle command center + packing
+  06_mobile.png     - mobile preview
+
+Run: python3 build_marketing.py
+"""
+from __future__ import annotations
+import datetime as dt
+import math
+import os
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+PRIMARY = (27, 79, 72)
+PRIMARY_DK = (18, 56, 51)
+PRIMARY_LT = (33, 92, 83)
+ACCENT = (147, 115, 86)
+GOLD = (180, 145, 90)
+GOLD_LT = (201, 168, 106)
+GOLD_HI = (224, 196, 140)
+SURFACE = (229, 211, 186)
+HIGHLIGHT = (117, 230, 193)
+BG = (251, 248, 242)
+BG_TOP = (253, 250, 246)
+BG_BOT = (242, 235, 223)
+WHITE = (255, 255, 255)
+TEXT = (51, 51, 51)
+TEXT_MUTED = (132, 126, 116)
+DANGER = (201, 76, 76)
+MINT_BG = (227, 248, 239)
+WARN_BG = (251, 240, 226)
+RED_BG = (251, 230, 230)
+GRID = (228, 222, 210)
+ROW_ALT = (246, 241, 232)
+DOT = (228, 220, 206)
+GREEN = (32, 120, 96)
+SIZE = 2000
+
+SANS_B = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+SANS_R = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+SERIF_B = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
+
+TABS = ["Dashboard", "Trip Profile", "Route", "Itinerary", "Budget", "Fuel", "Vehicle", "Stays",
+        "Camping", "Attractions", "Food", "Packing", "Emergency", "Journal", "Gallery", "Parks",
+        "Rewards", "Analytics", "Settings"]
+
+FILE_LABEL = "Road_Trip_Command_Center.xlsx — Great Southwest Loop · 5 National Parks"
+
+
+def fs(s, bold=True):
+    return ImageFont.truetype(SANS_B if bold else SANS_R, s)
+
+
+def fserif(s):
+    return ImageFont.truetype(SERIF_B, s)
+
+
+def vgradient(w, h, top, bottom):
+    col = Image.new("RGB", (1, h)); px = col.load()
+    for y in range(h):
+        t = y / max(h - 1, 1)
+        px[0, y] = tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3))
+    return col.resize((w, h)).convert("RGBA")
+
+
+def grad_round(c, box, radius, top, bottom, outline=None, width=0):
+    x0, y0, x1, y1 = [int(v) for v in box]
+    w, h = x1 - x0, y1 - y0
+    if w <= 0 or h <= 0:
+        return
+    g = vgradient(w, h, top, bottom)
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, w - 1, h - 1), radius=radius, fill=255)
+    layer = Image.new("RGBA", c.size, (0, 0, 0, 0)); layer.paste(g, (x0, y0), mask)
+    c.alpha_composite(layer)
+    if outline and width:
+        ImageDraw.Draw(c).rounded_rectangle((x0, y0, x1, y1), radius=radius, outline=outline, width=width)
+
+
+def radial_glow(c, cx, cy, r, color, strength=120):
+    layer = Image.new("RGBA", c.size, (0, 0, 0, 0))
+    ImageDraw.Draw(layer).ellipse((cx - r, cy - r, cx + r, cy + r), fill=color + (strength,))
+    c.alpha_composite(layer.filter(ImageFilter.GaussianBlur(r // 2)))
+
+
+def premium_bg(c, band_h=0):
+    c.alpha_composite(vgradient(c.width, c.height, BG_TOP, BG_BOT))
+    dots = Image.new("RGBA", c.size, (0, 0, 0, 0)); dd = ImageDraw.Draw(dots)
+    sp, r = 50, 3
+    for y in range(sp // 2, c.height, sp):
+        for x in range(sp // 2, c.width, sp):
+            dd.ellipse((x - r, y - r, x + r, y + r), fill=DOT + (140,))
+    c.alpha_composite(dots)
+    if band_h:
+        hero_band(c, band_h)
+
+
+def hero_band(c, band_h):
+    c.alpha_composite(vgradient(c.width, band_h, PRIMARY_LT, PRIMARY_DK), (0, 0))
+    radial_glow(c, c.width // 2, band_h // 2 - 30, 520, (60, 130, 118), 70)
+    wm = Image.new("RGBA", c.size, (0, 0, 0, 0)); wd = ImageDraw.Draw(wm)
+    for rr in (300, 230, 160):
+        wd.ellipse((c.width - 120 - rr, band_h - 60 - rr, c.width - 120 + rr, band_h - 60 + rr), outline=(255, 255, 255, 22), width=3)
+    c.alpha_composite(wm)
+    d = ImageDraw.Draw(c)
+    d.rectangle((0, band_h - 5, c.width, band_h), fill=GOLD_LT)
+    d.rectangle((0, band_h - 5, c.width, band_h - 2), fill=GOLD_HI)
+
+
+def shadow(c, box, radius, blur=24, alpha=70, dy=18):
+    layer = Image.new("RGBA", c.size, (0, 0, 0, 0))
+    ImageDraw.Draw(layer).rounded_rectangle(box, radius=radius, fill=(18, 50, 45, alpha))
+    c.alpha_composite(layer.filter(ImageFilter.GaussianBlur(blur)), (0, dy))
+
+
+def tc(d, xy, t, f, fill, anchor="mm"):
+    d.text(xy, t, font=f, fill=fill, anchor=anchor)
+
+
+def wordmark(c, cx, cy, text, size, max_w=None):
+    d = ImageDraw.Draw(c)
+    if max_w:
+        while size > 20 and d.textlength(text, font=fserif(size)) > max_w:
+            size -= 2
+    f = fserif(size)
+    sh = Image.new("RGBA", c.size, (0, 0, 0, 0))
+    ImageDraw.Draw(sh).text((cx + 5, cy + 7), text, font=f, fill=(8, 30, 27, 160), anchor="mm")
+    c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(7)))
+    bb = d.textbbox((cx, cy), text, font=f, anchor="mm"); pad = 30
+    bx0, by0, bx1, by1 = bb[0] - pad, bb[1] - pad, bb[2] + pad, bb[3] + pad
+    w, h = bx1 - bx0, by1 - by0
+    grad = vgradient(w, h, GOLD_HI, GOLD)
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).text((cx - bx0, cy - by0), text, font=f, fill=255, anchor="mm")
+    layer = Image.new("RGBA", c.size, (0, 0, 0, 0)); layer.paste(grad, (bx0, by0), mask)
+    c.alpha_composite(layer)
+
+
+def pill(c, cx, cy, text, font, pad_x=60, pad_y=26, star=False, fg=WHITE, grad=(GOLD_LT, GOLD), outline=GOLD_HI):
+    d = ImageDraw.Draw(c)
+    label = f"★  {text}" if star else text
+    tw = d.textlength(label, font=font); th = font.size
+    w, h = tw + pad_x * 2, th + pad_y * 2
+    box = (cx - w // 2, cy - h // 2, cx + w // 2, cy + h // 2)
+    shadow(c, box, h // 2, 22, 70, 12)
+    grad_round(c, box, h // 2, grad[0], grad[1])
+    ov = Image.new("RGBA", c.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    od.rounded_rectangle((box[0] + 5, box[1] + 5, box[2] - 5, box[3] - 5), radius=(h - 10) // 2, outline=outline, width=2)
+    od.text((cx, cy), label, font=font, fill=fg, anchor="mm")
+    c.alpha_composite(ov)
+
+
+def gold_divider(c, cx, cy, width=560, color=GOLD_HI):
+    d = ImageDraw.Draw(c)
+    d.line((cx - width // 2, cy, cx - 30, cy), fill=color, width=3)
+    d.line((cx + 30, cy, cx + width // 2, cy), fill=color, width=3)
+    d.polygon([(cx, cy - 12), (cx + 16, cy), (cx, cy + 12), (cx - 16, cy)], fill=color)
+
+
+def compass_crest(c, cx, cy, r=56, glow=True):
+    """Brand crest with a compass rose + winding road pin."""
+    if glow:
+        radial_glow(c, cx, cy, int(r * 2.1), GOLD_HI, 90)
+    grad_round(c, (cx - r, cy - r, cx + r, cy + r), 22, PRIMARY_LT, PRIMARY_DK, outline=GOLD_LT, width=4)
+    ov = Image.new("RGBA", c.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    d.rounded_rectangle((cx - r + 10, cy - r + 10, cx + r - 10, cy + r - 10), radius=16, outline=GOLD_HI, width=2)
+    c.alpha_composite(ov)
+    # compass ring
+    cr = r * 0.6
+    ov = Image.new("RGBA", c.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    d.ellipse((cx - cr, cy - cr, cx + cr, cy + cr), outline=GOLD_HI, width=3)
+    # compass needle (N red-ish gold, S light)
+    n = cr * 0.82
+    d.polygon([(cx, cy - n), (cx - cr * 0.22, cy), (cx, cy + cr * 0.12), (cx + cr * 0.22, cy)], fill=HIGHLIGHT)
+    d.polygon([(cx, cy + n), (cx - cr * 0.22, cy), (cx, cy - cr * 0.12), (cx + cr * 0.22, cy)], fill=(224, 196, 140))
+    d.ellipse((cx - 5, cy - 5, cx + 5, cy + 5), fill=WHITE)
+    # tick marks NESW
+    for ang in range(0, 360, 45):
+        a = math.radians(ang)
+        x1 = cx + math.cos(a) * cr * 0.86; y1 = cy + math.sin(a) * cr * 0.86
+        x2 = cx + math.cos(a) * cr; y2 = cy + math.sin(a) * cr
+        d.line((x1, y1, x2, y2), fill=GOLD_HI, width=2)
+    c.alpha_composite(ov)
+
+
+def stat_chip(c, cx, cy, big, small, w=400, h=150):
+    box = (cx - w // 2, cy - h // 2, cx + w // 2, cy + h // 2)
+    shadow(c, box, 20, 24, 80, 16)
+    grad_round(c, box, 20, PRIMARY_LT, PRIMARY_DK, outline=GOLD_LT, width=3)
+    ov = Image.new("RGBA", c.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    d.rounded_rectangle((box[0] + 18, box[1] + 12, box[2] - 18, box[1] + 18), radius=3, fill=GOLD_HI)
+    d.text((cx, cy - h * 0.16), big, font=fserif(48), fill=GOLD_HI, anchor="mm")
+    d.text((cx, cy + h * 0.28), small, font=fs(21), fill=WHITE, anchor="mm")
+    c.alpha_composite(ov)
+
+
+def donut(d, cx, cy, r, segs, center_top=None, center_sub=None, hole=0.55):
+    ang = -90
+    for pct, col in segs:
+        s = pct * 3.6
+        d.pieslice((cx - r, cy - r, cx + r, cy + r), ang, ang + s, fill=col); ang += s
+    hr = r * hole
+    d.ellipse((cx - hr, cy - hr, cx + hr, cy + hr), fill=WHITE)
+    if center_top:
+        d.text((cx, cy - (10 if center_sub else 0)), center_top, font=fserif(int(r * 0.32)), fill=PRIMARY, anchor="mm")
+    if center_sub:
+        d.text((cx, cy + int(r * 0.26)), center_sub, font=fs(int(r * 0.13)), fill=TEXT_MUTED, anchor="mm")
+
+
+def legend(d, x, y, items, fsz=20, gap=40):
+    for i, (col, lab) in enumerate(items):
+        yy = y + i * gap
+        d.rounded_rectangle((x, yy, x + 24, yy + 24), radius=5, fill=col)
+        d.text((x + 36, yy + 12), lab, font=fs(fsz, bold=False), fill=TEXT, anchor="lm")
+
+
+def hbars(img, d, box, items, color=(HIGHLIGHT, (70, 200, 165)), labelcol=ACCENT):
+    x0, y0, x1, y1 = box; n = len(items); rowh = min((y1 - y0) / n, 110); bw_max = (x1 - x0) - 200
+    y0 = y0 + max(((y1 - y0) - rowh * n) / 2, 0)
+    for i, (lab, frac, vlabel) in enumerate(items):
+        yy = y0 + rowh * i + rowh * 0.16
+        d.text((x0, yy), lab, font=fs(18, bold=False), fill=TEXT, anchor="lt")
+        d.rounded_rectangle((x0, yy + 30, x0 + bw_max, yy + 56), radius=13, fill=(236, 230, 220))
+        grad_round(img, (x0, yy + 30, x0 + bw_max * frac, yy + 56), 13, color[0], color[1])
+        d.text((x0 + bw_max + 14, yy + 43), vlabel, font=fs(18), fill=labelcol, anchor="lm")
+
+
+def fit_font(d, text, max_w, start, serif=True):
+    s = start; f = fserif(s) if serif else fs(s)
+    while s > 12 and d.textlength(text, font=f) > max_w:
+        s -= 1; f = fserif(s) if serif else fs(s)
+    return f
+
+
+def app_window(img, box, active_idx, content_fn, file_label=FILE_LABEL):
+    x0, y0, x1, y1 = box
+    shadow(img, box, 26, 40, 95, 22)
+    ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    od.rounded_rectangle(box, radius=24, fill=WHITE, outline=(210, 203, 190), width=2)
+    img.alpha_composite(ov)
+    tb_h = 58
+    grad_round(img, (x0, y0, x1, y0 + tb_h + 24), 24, (54, 56, 60), (44, 46, 50))
+    ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    od.rectangle((x0, y0 + tb_h, x1, y0 + tb_h + 4), fill=(36, 38, 42))
+    for i, col in enumerate([(237, 106, 94), (245, 191, 79), (98, 197, 84)]):
+        od.ellipse((x0 + 30 + i * 36, y0 + tb_h // 2 - 11, x0 + 52 + i * 36, y0 + tb_h // 2 + 11), fill=col)
+    od.text(((x0 + x1) / 2, y0 + tb_h // 2), file_label, font=fs(19, bold=False), fill=(225, 222, 215), anchor="mm")
+    img.alpha_composite(ov)
+    sb_w = int((x1 - x0) * 0.205)
+    sb = (x0, y0 + tb_h, x0 + sb_w, y1)
+    grad_round(img, (sb[0], sb[1], sb[2] + 24, sb[3]), 0, PRIMARY_LT, PRIMARY_DK)
+    grad_round(img, (sb[0], y1 - 24, sb[2], y1), 24, PRIMARY_DK, PRIMARY_DK)
+    ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    bx = sb[0] + 26
+    od.text((bx, sb[1] + 26), "ROAD TRIP", font=fs(18), fill=GOLD_HI, anchor="lt")
+    od.text((bx, sb[1] + 50), "19-tab system", font=fs(14, bold=False), fill=(170, 200, 192), anchor="lt")
+    od.line((sb[0] + 20, sb[1] + 78, sb[2] - 16, sb[1] + 78), fill=(255, 255, 255, 40), width=1)
+    list_top = sb[1] + 88
+    rowh = (y1 - 20 - list_top) / len(TABS)
+    palette = [HIGHLIGHT, GOLD_HI, SURFACE, (150, 200, 190)]
+    for i, name in enumerate(TABS):
+        ry = list_top + i * rowh
+        if i == active_idx:
+            od.rounded_rectangle((sb[0] + 12, ry + 1, sb[2] - 10, ry + rowh - 1), radius=6, fill=(255, 255, 255, 235))
+            od.rounded_rectangle((sb[0] + 12, ry + 1, sb[0] + 18, ry + rowh - 1), radius=3, fill=GOLD_HI)
+            dotc = PRIMARY; txtc = PRIMARY; font = fs(15)
+        else:
+            dotc = palette[i % len(palette)]; txtc = (214, 226, 222); font = fs(15, bold=False)
+        cyr = ry + rowh / 2
+        od.ellipse((sb[0] + 26, cyr - 4, sb[0] + 34, cyr + 4), fill=dotc)
+        od.text((sb[0] + 46, cyr), name, font=font, fill=txtc, anchor="lm")
+    img.alpha_composite(ov)
+    cbox = (sb[2] + 1, y0 + tb_h + 4, x1, y1)
+    content_fn(img, cbox)
+
+
+KPIS = [
+    ("DAYS TO DEPARTURE", "30", "counting down"),
+    ("TOTAL DISTANCE", "1,555", "miles"),
+    ("DRIVING HOURS", "28.6", "on the road"),
+    ("TOTAL BUDGET", "$4,800", "2 travelers"),
+    ("BUDGET REMAINING", "$3,150", "after bookings"),
+    ("FUEL ESTIMATE", "$350", "@ 16 mpg"),
+    ("STOPS PLANNED", "10", "attractions"),
+    ("CAMPGROUNDS BOOKED", "4", "reserved"),
+    ("HOTELS BOOKED", "3", "confirmed"),
+    ("PACKING PROGRESS", "77%", "23 of 30"),
+    ("VEHICLE READINESS", "80%", "8 of 10 checks"),
+    ("TRIP READINESS", "81%", "road ready"),
+]
+
+
+def content_dashboard(img, cbox):
+    x0, y0, x1, y1 = cbox; pad = 30
+    d = ImageDraw.Draw(img); d.rectangle(cbox, fill=BG)
+    d.text((x0 + pad, y0 + 22), "Road Trip Dashboard", font=fs(32), fill=PRIMARY, anchor="lt")
+    d.text((x0 + pad, y0 + 64), "Great Southwest Loop · 5 national parks  ·  your whole trip, automatically organized", font=fs(19, bold=False), fill=TEXT_MUTED, anchor="lt")
+    d.rounded_rectangle((x1 - pad - 150, y0 + 26, x1 - pad, y0 + 62), radius=18, fill=MINT_BG)
+    d.text((x1 - pad - 75, y0 + 44), "● live", font=fs(18), fill=PRIMARY, anchor="mm")
+    gx = x0 + pad; gy = y0 + 98; gw = (x1 - x0 - 2 * pad); gap = 14
+    kw = (gw - 5 * gap) / 6; kh = 116
+    for i, (lab, val, sub) in enumerate(KPIS):
+        r, ci = divmod(i, 6)
+        kx = gx + ci * (kw + gap); ky = gy + r * (kh + gap)
+        d.rounded_rectangle((kx, ky, kx + kw, ky + kh), radius=12, fill=WHITE, outline=GRID, width=2)
+        d.rounded_rectangle((kx + 12, ky, kx + kw - 12, ky + 5), radius=2, fill=GOLD_LT)
+        d.text((kx + 14, ky + 16), lab, font=fs(12), fill=ACCENT, anchor="lt")
+        vf = fit_font(d, val, kw - 28, 30)
+        d.text((kx + 14, ky + 58), val, font=vf, fill=PRIMARY, anchor="lm")
+        d.text((kx + 14, ky + 96), sub, font=fs(12, bold=False), fill=TEXT_MUTED, anchor="lm")
+    cy_top = gy + 2 * (kh + gap) + 18
+    d.text((gx, cy_top), "BUDGET · MILEAGE · READINESS · SPENDING", font=fs(20), fill=ACCENT, anchor="lt")
+    panels_y = cy_top + 34; panel_h = (y1 - panels_y - pad); pw = (gw - 3 * gap) / 4
+    # budget donut
+    px = gx
+    d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
+    d.text((px + 16, panels_y + 14), "Budget by Category", font=fs(17), fill=ACCENT, anchor="lt")
+    donut(d, px + pw * 0.42, panels_y + panel_h * 0.52, min(panel_h * 0.28, pw * 0.27),
+          [(29, PRIMARY), (17, ACCENT), (11, HIGHLIGHT), (8, SURFACE), (35, (170, 150, 120))], "$4.8K", "planned")
+    legend(d, px + pw * 0.04, panels_y + panel_h - 104, [(PRIMARY, "Hotels 29%"), (ACCENT, "Food 17%"), (HIGHLIGHT, "Fuel 11%")], 15, 30)
+    # daily mileage bars
+    px = gx + (pw + gap)
+    d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
+    d.text((px + 16, panels_y + 14), "Daily Mileage", font=fs(17), fill=ACCENT, anchor="lt")
+    hbars(img, d, (px + 20, panels_y + 50, px + pw - 16, panels_y + panel_h - 16),
+          [("Day 1", 165 / 280, "165"), ("Day 4", 120 / 280, "120"), ("Day 5", 150 / 280, "150"),
+           ("Day 9", 180 / 280, "180"), ("Day 12", 280 / 280, "280")], color=(GOLD_HI, GOLD))
+    # readiness bars
+    px = gx + 2 * (pw + gap)
+    d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
+    d.text((px + 16, panels_y + 14), "Trip Readiness", font=fs(17), fill=ACCENT, anchor="lt")
+    hbars(img, d, (px + 20, panels_y + 56, px + pw - 16, panels_y + panel_h - 20),
+          [("Fund", 0.94, "94%"), ("Packing", 0.77, "77%"), ("Vehicle", 0.80, "80%"), ("Bookings", 0.75, "75%")])
+    # spent vs remaining donut
+    px = gx + 3 * (pw + gap)
+    d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
+    d.text((px + 16, panels_y + 14), "Spent vs Remaining", font=fs(17), fill=ACCENT, anchor="lt")
+    donut(d, px + pw * 0.42, panels_y + panel_h * 0.52, min(panel_h * 0.28, pw * 0.27),
+          [(34, PRIMARY), (66, SURFACE)], "34%", "booked")
+    legend(d, px + pw * 0.04, panels_y + panel_h - 76, [(PRIMARY, "Spent $1,650"), (SURFACE, "Left $3,150")], 15, 30)
+
+
+def _table(img, cbox, title, subtitle, headers, colf, rows, total_row=None,
+           status_col=None, status_map=None, hdr_top=104):
+    x0, y0, x1, y1 = cbox; pad = 30
+    d = ImageDraw.Draw(img); d.rectangle(cbox, fill=BG)
+    d.text((x0 + pad, y0 + 22), title, font=fs(32), fill=PRIMARY, anchor="lt")
+    d.text((x0 + pad, y0 + 62), subtitle, font=fs(18, bold=False), fill=TEXT_MUTED, anchor="lt")
+    tx0, tx1 = x0 + pad, x1 - pad
+    ty = y0 + hdr_top
+    colx = [tx0 + (tx1 - tx0) * f for f in colf]
+    hdr_h = 42
+    grad_round(img, (tx0, ty, tx1, ty + hdr_h), 8, PRIMARY_LT, PRIMARY_DK)
+    for i, h in enumerate(headers):
+        anc = "lm" if i == 0 else "mm"
+        d.text((colx[i] + (14 if i == 0 else 0), ty + hdr_h / 2), h, font=fs(15), fill=WHITE, anchor=anc)
+    nrows = len(rows) + (1 if total_row else 0)
+    rh = (y1 - pad - (ty + hdr_h)) / nrows
+    for i, row in enumerate(rows):
+        ry = ty + hdr_h + i * rh
+        if i % 2:
+            d.rectangle((tx0, ry, tx1, ry + rh), fill=ROW_ALT)
+        for ci, val in enumerate(row):
+            anc = "lm" if ci == 0 else "mm"
+            hx = colx[ci] + (14 if ci == 0 else 0)
+            sval = str(val)
+            if status_map is not None and ci == status_col:
+                bg, fg = status_map.get(sval, ((235, 230, 222), TEXT_MUTED))
+                d.rounded_rectangle((hx - 62, ry + rh / 2 - 15, hx + 62, ry + rh / 2 + 15), radius=14, fill=bg)
+                d.text((hx, ry + rh / 2), sval, font=fs(15), fill=fg, anchor="mm")
+            else:
+                col = PRIMARY if ci == 0 else TEXT
+                d.text((hx, ry + rh / 2), sval, font=fs(16) if ci == 0 else fs(15, bold=False), fill=col, anchor=anc)
+    if total_row:
+        ry = ty + hdr_h + len(rows) * rh
+        d.rectangle((tx0, ry, tx1, ry + rh), fill=SURFACE)
+        for ci, val in enumerate(total_row):
+            anc = "lm" if ci == 0 else "mm"
+            hx = colx[ci] + (14 if ci == 0 else 0)
+            if val != "":
+                d.text((hx, ry + rh / 2), str(val), font=fs(16), fill=PRIMARY, anchor=anc)
+
+
+def content_route(img, cbox):
+    rows = [
+        ("Day 1", "Las Vegas → Zion NP", "Valley of Fire", "165", "2.8"),
+        ("Day 3", "Zion → Bryce Canyon", "Red Canyon arches", "85", "1.6"),
+        ("Day 4", "Bryce → Capitol Reef", "Scenic Byway 12", "120", "2.4"),
+        ("Day 5", "Capitol Reef → Moab", "Goblin Valley", "150", "2.6"),
+        ("Day 7", "Moab → Mesa Verde", "Colorado border", "150", "2.7"),
+        ("Day 8", "Mesa Verde → Monument Valley", "Four Corners", "165", "3.0"),
+        ("Day 9", "Monument Valley → Grand Canyon", "Cameron Post", "180", "3.2"),
+        ("Day 11", "Grand Canyon → Sedona", "Oak Creek Canyon", "115", "2.3"),
+        ("Day 12", "Sedona → Las Vegas", "Hoover Dam", "280", "4.4"),
+    ]
+    _table(img, cbox, "Route Planner",
+           "The whole drive, mapped — daily miles & drive time total themselves.  1,555 mi · 28.6 h",
+           ["DAY", "ROUTE (FROM → TO)", "SCENIC STOP", "MILES", "HRS"],
+           [0.0, 0.20, 0.56, 0.78, 0.90], rows,
+           total_row=("TOTAL", "", "", "1,555", "28.6"))
+
+
+def content_budget(img, cbox):
+    rows = [
+        ("Hotels", "$1,400", "$1,050", "$350"),
+        ("Food & Dining", "$820", "$0", "$820"),
+        ("Fuel", "$520", "$0", "$520"),
+        ("Emergency Fund", "$400", "$0", "$400"),
+        ("Attractions", "$400", "$120", "$280"),
+        ("Vehicle Maintenance", "$300", "$300", "$0"),
+        ("Campgrounds", "$240", "$180", "$60"),
+        ("Souvenirs", "$200", "$0", "$200"),
+        ("Miscellaneous", "$300", "$0", "$300"),
+    ]
+    _table(img, cbox, "Road Trip Budget Command Center",
+           "Every dollar planned — budget vs actual, cost per traveler & per day.  $2,400/person · $400/day",
+           ["CATEGORY", "PLANNED", "ACTUAL", "REMAINING"],
+           [0.0, 0.42, 0.64, 0.88], rows,
+           total_row=("TOTAL BUDGET", "$4,800", "$1,650", "$3,150"))
+
+
+def content_vehicle(img, cbox):
+    rows = [
+        ("Oil change", "OK", "Done last week"),
+        ("Tire pressure & tread", "OK", "All 40 psi"),
+        ("Brake inspection", "OK", "Pads 60%"),
+        ("Battery", "OK", "Tested good"),
+        ("Wiper blades", "Due Soon", "Replace before trip"),
+        ("Coolant / fluids", "OK", "Topped off"),
+        ("Air filter", "Due Soon", "Order online"),
+        ("Emergency kit", "OK", "Restocked"),
+    ]
+    _table(img, cbox, "Vehicle Command Center",
+           "Trip-ready & road-safe — every check, with maintenance reminders.  80% ready (8 of 10)",
+           ["CHECK", "STATUS", "NOTES"],
+           [0.0, 0.44, 0.66, 0.90], rows,
+           status_col=1, status_map={"OK": (MINT_BG, PRIMARY), "Due Soon": (WARN_BG, ACCENT),
+                                     "Overdue": (RED_BG, DANGER)})
+
+
+def content_packing(img, cbox):
+    rows = [
+        ("Hiking boots", "Hiking Gear", "Both", "Yes"),
+        ("Sleeping bags", "Camping Gear", "Both", "Yes"),
+        ("Camp stove + fuel", "Cooking", "Nora", "Yes"),
+        ("First-aid kit", "Emergency Kit", "Nora", "Yes"),
+        ("Jumper cables", "Vehicle Supplies", "Jake", "Yes"),
+        ("Paper maps (no signal!)", "Documents", "Both", "Yes"),
+        ("Camera + lenses", "Electronics", "Nora", "No"),
+        ("Camp chairs", "Camping Gear", "Jake", "No"),
+        ("Water filter", "Hiking Gear", "Jake", "No"),
+    ]
+    _table(img, cbox, "Packing Command Center",
+           "Everything for the road — assign & check off.  77% packed (23 of 30)",
+           ["ITEM", "CATEGORY", "FOR", "PACKED?"],
+           [0.0, 0.42, 0.66, 0.88], rows,
+           status_col=3, status_map={"Yes": (MINT_BG, PRIMARY), "No": (WARN_BG, ACCENT)})
+
+
+# ---------- renders ----------
+
+def render_hero(out):
+    img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
+    premium_bg(img, band_h=640)
+    d = ImageDraw.Draw(img)
+    compass_crest(img, SIZE // 2, 132, r=56)
+    pill(img, SIZE // 2, 256, "THE ROAD TRIP OPERATING SYSTEM", font=fs(25), pad_x=42, pad_y=20)
+    wordmark(img, SIZE // 2, 400, "ROAD TRIP COMMAND CENTER", 98, max_w=1860)
+    gold_divider(img, SIZE // 2, 500, width=520)
+    tc(d, (SIZE // 2, 550), "Route, budget, fuel, vehicle, camping & memories — from the first pin to the last sunset.",
+       fs(22, bold=False), (224, 213, 190))
+    chips = [("19", "POWERFUL TABS"), ("AUTO", "MILES + FUEL + BUDGET"), ("2-in-1", "EXCEL + SHEETS")]
+    cw = 440
+    total = len(chips) * cw + (len(chips) - 1) * 28
+    startx = (SIZE - total) // 2 + cw // 2
+    for i, (b, s) in enumerate(chips):
+        stat_chip(img, startx + i * (cw + 28), 704, b, s, w=cw)
+    app_window(img, (70, 800, SIZE - 70, 1900), 0, content_dashboard)
+    pill(img, SIZE // 2, SIZE - 52, "19 SHEETS · INSTANT DOWNLOAD · EXCEL + GOOGLE SHEETS",
+         font=fs(33), pad_x=50, pad_y=24, star=True, grad=(PRIMARY_LT, PRIMARY_DK))
+    img.convert("RGB").save(out, "PNG", optimize=True)
+
+
+def render_inside(out):
+    img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
+    premium_bg(img, band_h=400)
+    d = ImageDraw.Draw(img)
+    pill(img, SIZE // 2, 120, "EVERYTHING INSIDE", font=fs(38), pad_x=54, pad_y=22)
+    tc(d, (SIZE // 2, 238), "19 Powerful, Connected Tabs", fserif(58), WHITE)
+    gold_divider(img, SIZE // 2, 308, width=520)
+    tc(d, (SIZE // 2, 352), "Not a road trip checklist — a complete road trip operating system",
+       fs(24, bold=False), (226, 214, 190))
+    cards = [
+        ("Road Trip Dashboard", "12 KPIs + live charts"), ("Trip Profile", "the who & the rig"),
+        ("Route Planner", "miles & drive time"), ("Daily Itinerary", "every day mapped"),
+        ("Budget Command", "plan vs actual"), ("Fuel Tracker", "MPG & cost per mile"),
+        ("Vehicle Command", "checks & reminders"), ("Accommodation", "hotels & cabins"),
+        ("Campground Planner", "sites & hookups"), ("Attraction Planner", "the bucket list"),
+        ("Food Planner", "eats & groceries"), ("Packing Command", "nothing forgotten"),
+        ("Emergency & Safety", "contacts & health"), ("Road Trip Journal", "one line a day"),
+        ("Photo Gallery", "keep the views"), ("Park Checklist", "collect the parks"),
+        ("Rewards Tracker", "travel for less"), ("Analytics", "readiness score"),
+        ("Settings", "your lists & trip"),
+    ]
+    cols = 4
+    margin = 88
+    gx, gy = 22, 20
+    cw = (SIZE - 2 * margin - (cols - 1) * gx) // cols
+    top = 438
+    rows_n = 5
+    ch = (SIZE - top - 60 - (rows_n - 1) * gy) // rows_n
+    for i, (title, sub) in enumerate(cards):
+        r, ccol = divmod(i, cols)
+        x = margin + ccol * (cw + gx); y = top + r * (ch + gy)
+        shadow(img, (x, y, x + cw, y + ch), 14, 12, 40, 8)
+        ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+        od.rounded_rectangle((x, y, x + cw, y + ch), radius=14, fill=WHITE, outline=(232, 224, 208), width=2)
+        od.rectangle((x + 3, y + 8, x + 7, y + ch - 8), fill=GOLD_LT)
+        cyc = y + ch // 2; bx = x + 44
+        od.ellipse((bx - 22, cyc - 22, bx + 22, cyc + 22), fill=PRIMARY)
+        od.text((bx, cyc), str(i + 1), font=fs(20), fill=GOLD_HI, anchor="mm")
+        od.text((x + 80, cyc - 16), title, font=fs(20), fill=PRIMARY, anchor="lm")
+        od.text((x + 80, cyc + 19), sub, font=fs(14, bold=False), fill=TEXT_MUTED, anchor="lm")
+        img.alpha_composite(ov)
+    img.convert("RGB").save(out, "PNG", optimize=True)
+
+
+def render_route(out):
+    img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
+    premium_bg(img, band_h=360)
+    d = ImageDraw.Draw(img)
+    pill(img, SIZE // 2, 116, "ROUTE PLANNER", font=fs(34), pad_x=50, pad_y=22)
+    tc(d, (SIZE // 2, 232), "Every Mile, Mapped", fserif(52), WHITE)
+    tc(d, (SIZE // 2, 300), "Daily miles & drive time total themselves — 1,555 miles across 5 national parks",
+       fs(23, bold=False), (226, 214, 190))
+    app_window(img, (70, 400, SIZE - 70, SIZE - 70), 2, content_route)
+    img.convert("RGB").save(out, "PNG", optimize=True)
+
+
+def render_budget(out):
+    img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
+    premium_bg(img, band_h=360)
+    d = ImageDraw.Draw(img)
+    pill(img, SIZE // 2, 116, "BUDGET COMMAND CENTER", font=fs(32), pad_x=48, pad_y=22)
+    tc(d, (SIZE // 2, 232), "Every Dollar, Planned & Tracked", fserif(48), WHITE)
+    tc(d, (SIZE // 2, 300), "Budget vs actual, cost per traveler & per day — no more road-trip money surprises",
+       fs(23, bold=False), (226, 214, 190))
+    app_window(img, (70, 400, SIZE - 70, SIZE - 70), 4, content_budget)
+    img.convert("RGB").save(out, "PNG", optimize=True)
+
+
+def render_ready(out):
+    img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
+    premium_bg(img, band_h=300)
+    d = ImageDraw.Draw(img)
+    pill(img, SIZE // 2, 110, "ROAD-READY", font=fs(36), pad_x=52, pad_y=22)
+    tc(d, (SIZE // 2, 224), "Prep the Rig. Pack the Van.", fserif(46), WHITE)
+    app_window(img, (60, 330, SIZE - 60, 1150), 6, content_vehicle)
+    app_window(img, (60, 1180, SIZE - 60, SIZE - 60), 11, content_packing)
+    img.convert("RGB").save(out, "PNG", optimize=True)
+
+
+def render_mobile(out):
+    img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
+    premium_bg(img, band_h=400)
+    d = ImageDraw.Draw(img)
+    pill(img, SIZE // 2, 130, "WORKS EVERYWHERE", font=fs(38), pad_x=54, pad_y=22)
+    tc(d, (SIZE // 2, 250), "Excel · Google Sheets · Mobile", fserif(56), WHITE)
+    tc(d, (SIZE // 2, 320), "Check fuel & the route from the driver's seat — your whole trip in your pocket",
+       fs(23, bold=False), (226, 214, 190))
+    px, py = SIZE // 2, 1300
+    pw, ph = 640, 1230
+    phone = (px - pw // 2, py - ph // 2, px + pw // 2, py + ph // 2)
+    shadow(img, phone, 64, 50, 110, 24)
+    ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    od.rounded_rectangle(phone, radius=64, fill=(26, 26, 30))
+    bez = 22
+    screen = (phone[0] + bez, phone[1] + bez + 30, phone[2] - bez, phone[3] - bez - 30)
+    od.rounded_rectangle(screen, radius=44, fill=BG)
+    od.rounded_rectangle((px - 95, phone[1] + 16, px + 95, phone[1] + 50), radius=18, fill=(14, 14, 18))
+    img.alpha_composite(ov)
+    sx0, sy0, sx1, sy1 = screen
+    grad_round(img, (sx0, sy0, sx1, sy0 + 110), 44, PRIMARY_LT, PRIMARY_DK)
+    ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    od.rectangle((sx0, sy0 + 106, sx1, sy0 + 110), fill=GOLD_LT)
+    od.text(((sx0 + sx1) // 2, sy0 + 56), "Road Trip", font=fserif(32), fill=GOLD_HI, anchor="mm")
+    y = sy0 + 150
+    cards = [("DAYS TO DEPARTURE", "30 days", PRIMARY), ("TOTAL DISTANCE", "1,555 mi", ACCENT),
+             ("BUDGET REMAINING", "$3,150", PRIMARY), ("TRIP READINESS", "81%", PRIMARY)]
+    for lab, val, col in cards:
+        cb = (sx0 + 30, y, sx1 - 30, y + 135)
+        od.rounded_rectangle(cb, radius=18, fill=WHITE, outline=GOLD_LT, width=2)
+        od.rounded_rectangle((cb[0] + 20, y, cb[2] - 20, y + 5), radius=2, fill=GOLD_LT)
+        od.text((cb[0] + 26, y + 34), lab, font=fs(22), fill=ACCENT, anchor="lt")
+        vf = fit_font(od, val, sx1 - sx0 - 110, 46)
+        od.text((cb[0] + 26, y + 94), val, font=vf, fill=col, anchor="lm")
+        y += 152
+    od.text((sx0 + 40, y + 16), "BEFORE WE ROLL", font=fs(22), fill=ACCENT, anchor="lt")
+    y += 52
+    for lab, state in [("Replace wiper blades", False), ("Confirm Moab hotel", False),
+                       ("Download offline maps", True), ("Book Arches timed entry", True)]:
+        col = HIGHLIGHT if state else BG
+        od.ellipse((sx0 + 40, y + 6, sx0 + 78, y + 44), fill=col, outline=PRIMARY, width=3)
+        if state:
+            od.text((sx0 + 59, y + 24), "✓", font=fs(24), fill=PRIMARY, anchor="mm")
+        od.text((sx0 + 96, y + 24), lab, font=fs(21, bold=False), fill=TEXT, anchor="lm")
+        y += 64
+    img.alpha_composite(ov)
+    img.convert("RGB").save(out, "PNG", optimize=True)
+
+
+def main():
+    out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "marketing")
+    os.makedirs(out_dir, exist_ok=True)
+    targets = [
+        ("01_hero.png", render_hero),
+        ("02_inside.png", render_inside),
+        ("03_route.png", render_route),
+        ("04_budget.png", render_budget),
+        ("05_ready.png", render_ready),
+        ("06_mobile.png", render_mobile),
+    ]
+    for name, fn in targets:
+        fn(os.path.join(out_dir, name))
+        print(f"  ✓ {name}")
+    print(f"Wrote {len(targets)} images to {out_dir}")
+
+
+if __name__ == "__main__":
+    main()
