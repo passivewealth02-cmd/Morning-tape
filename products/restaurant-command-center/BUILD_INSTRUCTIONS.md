@@ -49,6 +49,16 @@ everything-inside (22-tab showcase), menu & recipe costing, P&L / prime cost,
 inventory + labor, and mobile. (Images 3–5 each show a different sheet — no
 repeat of the hero dashboard.)
 
+```bash
+python3 build_marketing_detail.py          # -> ../marketing/07..10.png
+```
+
+Four additional **detailed / benefit-driven** listing images (reuse the branded
+helpers via `from build_marketing import *`): 07 feature spotlights (with mini
+charts), 08 "basic template vs Command Center" comparison, 09 up-and-running in
+4 steps, 10 what's-included / who-it's-for / guarantee. Ten images total — more
+than enough to fill all 10 Etsy photo slots.
+
 ---
 
 ## D. Etsy delivery package
