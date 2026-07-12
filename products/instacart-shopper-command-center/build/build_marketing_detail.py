@@ -1,7 +1,7 @@
-"""Detailed marketing image set for Uber Eats Driver Command Center™ (4 images, 2000x2000).
+"""Detailed marketing image set for Instacart Shopper Command Center™ (4 images, 2000x2000).
 
   07_features.png   - feature spotlights (what it does + why it matters)
-  08_compare.png    - "basic mileage app" vs Uber Eats Driver Command Center™
+  08_compare.png    - "basic mileage app" vs Instacart Shopper Command Center™
   09_howitworks.png - up & running in 4 steps
   10_value.png      - what's included, who it's for & the guarantee
 
@@ -16,7 +16,7 @@ from PIL import Image, ImageDraw
 from build_marketing import (
     SIZE, PRIMARY, PRIMARY_DK, PRIMARY_LT, ACCENT, GOLD, GOLD_LT, GOLD_HI, SURFACE,
     HIGHLIGHT, BG, WHITE, TEXT, TEXT_MUTED, DANGER, MINT_BG, WARN_BG, RED_BG, GRID,
-    ROW_ALT, fs, fserif, premium_bg, pill, wordmark, gold_divider, bag_crest,
+    ROW_ALT, fs, fserif, premium_bg, pill, wordmark, gold_divider, carrot_crest,
     shadow, grad_round, radial_glow, tc, donut, legend, hbars, fit_font, vgradient,
 )
 
@@ -52,7 +52,7 @@ def mini_donut(img, cx, cy, r, pct, label, sub):
 def header_band(img, tagpill, title, subtitle, band_h=430):
     premium_bg(img, band_h=band_h)
     d = ImageDraw.Draw(img)
-    bag_crest(img, SIZE // 2, 110, r=48)
+    carrot_crest(img, SIZE // 2, 110, r=48)
     pill(img, SIZE // 2, 214, tagpill, font=fs(24), pad_x=40, pad_y=18)
     tc(d, (SIZE // 2, 300), title, fserif(56), WHITE)
     gold_divider(img, SIZE // 2, 360, width=480)
@@ -63,17 +63,17 @@ def header_band(img, tagpill, title, subtitle, band_h=430):
 # ===========================================================================
 def render_features(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
-    header_band(img, "BUILT TO GROW YOUR TAKE-HOME", "Where Drivers Win",
-                "Four engines that run the business behind the wheel")
+    header_band(img, "BUILT TO GROW YOUR TAKE-HOME", "Where Shoppers Win",
+                "Four engines that run the business behind the cart")
     feats = [
-        ("$", "Take-Home Engine", "donut", (60, "60%", "kept"),
-         "Every base pay, tip and promo minus gas and expenses rolls into one honest net number — your real $16.96 per hour."),
+        ("$", "Take-Home Engine", "donut", (65, "65%", "kept"),
+         "Every batch pay, tip and boost minus gas and expenses rolls into one honest net number — your real $17.82 per hour."),
         ("%", "Mileage & Taxes", "table", None,
-         "The Tax Center compares mileage vs actual, auto-picks the bigger deduction, and banks your quarterly set-aside — the write-off most drivers under-claim."),
+         "The Tax Center compares mileage vs actual, auto-picks the bigger deduction, and banks your quarterly set-aside — the write-off most shoppers under-claim."),
         ("box", "Earnings Analytics", "stock", None,
-         "Best shifts, best zones and best hours — see exactly which apps and windows pay the most per hour, then repeat it."),
-        ("star", "Driver Health", "bars", None,
-         "One 0-100% score blends net earnings, $/hour, deliveries, savings, consistency & your tax reserve."),
+         "Best stores, best hours and best apps — see exactly which batches pay the most per hour, then repeat them."),
+        ("star", "Shopper Health", "bars", None,
+         "One 0-100% score blends net earnings, $/hour, batches, savings, consistency & your tax reserve."),
     ]
     margin = 84; gap = 28
     cw = (SIZE - 2 * margin - gap) // 2
@@ -109,7 +109,7 @@ def render_features(out):
             mini_donut(img, x + cw // 2, vy + 30, 96, dat[0], dat[1], dat[2])
         elif kind == "table":
             od = ImageDraw.Draw(img)
-            rows = [("Mileage method", "$1,051"), ("Actual method", "$1,440"), ("Auto-picks", "Actual")]
+            rows = [("Mileage method", "$602"), ("Actual method", "$868"), ("Auto-picks", "Actual")]
             tx0 = x + 44; tx1 = x + cw - 44; ty = vy - 30
             grad_round(img, (tx0, ty, tx1, ty + 34), 6, PRIMARY_LT, PRIMARY_DK)
             for h, fx in zip(["TAX METHOD", "DEDUCTION"], [0.0, 0.74]):
@@ -122,8 +122,8 @@ def render_features(out):
                 od.text((tx0 + 14 + (tx1 - tx0) * 0.74, ry + 21), b, font=fs(17), fill=PRIMARY, anchor="lm")
         elif kind == "stock":
             od = ImageDraw.Draw(img)
-            items = [("Fri dinner rush", "$205", MINT_BG, PRIMARY), ("Stadium district", "$34/hr", MINT_BG, PRIMARY),
-                     ("Cherry Creek", "$32/hr", SURFACE, (110, 88, 58)), ("Sat dinner rush", "$198", MINT_BG, PRIMARY)]
+            items = [("Costco batches", "$34/bt", MINT_BG, PRIMARY), ("Whole Foods", "$30/bt", MINT_BG, PRIMARY),
+                     ("Sat big batches", "$208", SURFACE, (110, 88, 58)), ("Instacart AM", "$171", MINT_BG, PRIMARY)]
             tx0 = x + 44; tx1 = x + cw - 44; ty = vy - 30
             for ri, (nm, st, bg, fg) in enumerate(items):
                 ry = ty + ri * 44
@@ -133,7 +133,7 @@ def render_features(out):
                 od.text((tx1 - 70, ry + 19), st, font=fs(14), fill=fg, anchor="mm")
         elif kind == "bars":
             hbars(img, ImageDraw.Draw(img), (x + 44, y + 300, x + cw - 44, y + ch - 30),
-                  [("Net vs goal", 0.85, "85%"), ("Net $/hour", 1.0, "100%"), ("Savings", 0.65, "65%"), ("Tax reserve", 0.70, "70%")])
+                  [("Net vs goal", 0.80, "80%"), ("Net $/hour", 1.0, "100%"), ("Savings", 0.70, "70%"), ("Tax reserve", 0.72, "72%")])
     img.convert("RGB").save(out, "PNG", optimize=True)
 
 
@@ -143,8 +143,8 @@ def render_compare(out):
     header_band(img, "WHY IT'S DIFFERENT", "More Than a Mileage App",
                 "Everything a basic tracker leaves out — built in")
     rows = [
-        ("Track miles & deliveries", True, True),
-        ("True net $/hour & $/mile", False, True),
+        ("Track miles & batches", True, True),
+        ("True net $/hour, $/mile & $/batch", False, True),
         ("Gas & fill-up log", False, True),
         ("Vehicle & maintenance log", False, True),
         ("Business expenses + cost/mile", False, True),
@@ -152,8 +152,8 @@ def render_compare(out):
         ("Quarterly tax set-aside", False, True),
         ("Monthly household budget", False, True),
         ("Savings buckets & goals", False, True),
-        ("Promos, quests & hotspots", False, True),
-        ("One Driver Health Score", False, True),
+        ("Boosts, bonuses & best stores", False, True),
+        ("One Shopper Health Score", False, True),
     ]
     margin = 110; top = 500
     tw = SIZE - 2 * margin
@@ -192,12 +192,12 @@ def render_compare(out):
 def render_howitworks(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     header_band(img, "SET UP IN MINUTES", "Up & Running in 4 Steps",
-                "No spreadsheet skills needed — if you can dash, you can run it")
+                "No spreadsheet skills needed — if you can shop, you can run it")
     steps = [
         ("1", "Download & open", "Buy once and instantly download your Excel file, plus a 1-click link to copy the Google Sheets version."),
         ("2", "Set your car & goals", "In Settings, add your vehicle, the IRS mileage rate and monthly goals. One time only."),
-        ("3", "Log every shift", "After each shift, add hours, orders, base, tips, miles & gas in the Delivery Log. It takes 30 seconds."),
-        ("4", "Watch your net grow", "Net $/hour, the mileage deduction, your budget and Driver Health Score all update automatically."),
+        ("3", "Log every shift", "After each shift, add hours, batches, items, pay, tips, miles & gas in the Batch Log. It takes 30 seconds."),
+        ("4", "Watch your net grow", "Net $/hour, the mileage deduction, your budget and Shopper Health Score all update automatically."),
     ]
     margin = 100; top = 500
     sh = 300; gap = 24
@@ -231,9 +231,9 @@ def render_value(out):
     od.text((lx0 + 40, 540), "WHAT'S INCLUDED", font=fs(26), fill=ACCENT, anchor="lt")
     includes = [
         "18-tab Excel workbook (.xlsx)", "Google Sheets edition (1-click copy)",
-        "12-KPI driver dashboard", "Delivery log + earnings engine",
+        "12-KPI shopper dashboard", "Batch log + earnings engine",
         "Mileage & fuel trackers", "Business expenses + Tax Center",
-        "Monthly household budget", "Savings, goals & promos",
+        "Monthly household budget", "Savings, goals & boosts",
         "Start-Here quick-start guide (PDF)", "Free lifetime updates",
     ]
     for i, item in enumerate(includes):
@@ -247,8 +247,8 @@ def render_value(out):
     card(img, (rx0, 500, rx1, 890))
     ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
     od.text((rx0 + 40, 540), "WHO IT'S FOR", font=fs(26), fill=ACCENT, anchor="lt")
-    who = ["Full-time delivery drivers", "Part-time & weekend drivers", "Uber Eats & DoorDash drivers",
-           "Grubhub & Instacart shoppers", "Gig-economy multi-appers", "Anyone who deducts mileage"]
+    who = ["Full-time Instacart shoppers", "Part-time & weekend shoppers", "Instacart & Shipt shoppers",
+           "Amazon Flex & delivery drivers", "Gig-economy multi-appers", "Anyone who deducts mileage"]
     for i, w in enumerate(who):
         yy = 604 + i * 44
         od.text((rx0 + 44, yy), "•", font=fs(24), fill=GOLD_LT, anchor="lm")
@@ -267,10 +267,10 @@ def render_value(out):
     pill(img, SIZE // 2, 1420, "REPLACES A BOOKKEEPER, A TAX PREP & A BUDGET APP", font=fs(28), pad_x=44, pad_y=22,
          grad=(PRIMARY_LT, PRIMARY_DK))
     d = ImageDraw.Draw(img)
-    tc(d, (SIZE // 2, 1530), "One point of control for your earnings AND the business behind the wheel.",
+    tc(d, (SIZE // 2, 1530), "One point of control for your earnings AND the business behind the cart.",
        fs(24, bold=False), TEXT_MUTED)
-    bag_crest(img, SIZE // 2, 1700, r=54)
-    wordmark(img, SIZE // 2, 1850, "UBER EATS DRIVER COMMAND CENTER", 48, max_w=1560)
+    carrot_crest(img, SIZE // 2, 1700, r=54)
+    wordmark(img, SIZE // 2, 1850, "INSTACART SHOPPER COMMAND CENTER", 46, max_w=1560)
     img.convert("RGB").save(out, "PNG", optimize=True)
 
 
