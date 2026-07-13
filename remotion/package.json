@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "remotion studio",
     "render": "remotion render PromoLandscape out/maintena-landscape.mp4",
+    "render:cinematic": "remotion render Cinematic out/maintena-cinematic.mp4",
     "render:vertical": "remotion render PromoVertical out/maintena-vertical.mp4",
     "render:square": "remotion render PromoSquare out/maintena-square.mp4",
     "upgrade": "remotion upgrade"
