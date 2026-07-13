@@ -1,0 +1,25 @@
+{
+  "name": "maintena-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Maintena promo video (Remotion)",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render PromoLandscape out/maintena-landscape.mp4",
+    "render:vertical": "remotion render PromoVertical out/maintena-vertical.mp4",
+    "render:square": "remotion render PromoSquare out/maintena-square.mp4",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.7.0"
+  }
+}
