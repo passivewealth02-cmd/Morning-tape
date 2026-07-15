@@ -1,5 +1,5 @@
 import React from 'react'
-import { AbsoluteFill, Series } from 'remotion'
+import { AbsoluteFill, Series, useVideoConfig } from 'remotion'
 import {
   CineColdOpen,
   CineQuestion,
@@ -49,6 +49,21 @@ export const CinematicPromo: React.FC = () => {
           <CineFinale duration={T.finale} />
         </Series.Sequence>
       </Series>
+    </AbsoluteFill>
+  )
+}
+
+// Fits the 1920x1080 film onto any frame size (vertical / square) by scaling
+// it to the target width and centering it on the dark backdrop — nothing
+// overflows and every scene stays intact.
+export const CinematicFramed: React.FC = () => {
+  const { width } = useVideoConfig()
+  const scale = width / 1920
+  return (
+    <AbsoluteFill style={{ background: '#07090F', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ position: 'relative', width: 1920, height: 1080, transform: `scale(${scale})` }}>
+        <CinematicPromo />
+      </div>
     </AbsoluteFill>
   )
 }
