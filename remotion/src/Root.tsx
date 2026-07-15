@@ -2,6 +2,7 @@ import React from 'react'
 import { Composition } from 'remotion'
 import { Promo } from './Promo'
 import { CinematicPromo, CinematicFramed, TOTAL_CINEMATIC_FRAMES } from './CinematicPromo'
+import { LinkedInBanner } from './LinkedInBanner'
 
 const FPS = 30
 const DURATION = 600 // 20 seconds
@@ -32,6 +33,14 @@ export const RemotionRoot: React.FC = () => {
         fps={24}
         width={1080}
         height={1080}
+      />
+      <Composition
+        id="LinkedInBanner"
+        component={LinkedInBanner}
+        durationInFrames={1}
+        fps={30}
+        width={1584}
+        height={396}
       />
       <Composition
         id="PromoLandscape"
