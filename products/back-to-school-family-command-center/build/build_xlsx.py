@@ -479,30 +479,30 @@ def build_budget(wb):
     set_widths(ws, [2, 26, 14, 14, 14, 3, 2])
     luxe_header(ws, "E", "💰  BUDGET VS ACTUAL",
                 "Set a number, track every dollar — see exactly where back-to-school money goes.")
-    table_headers(ws, 4, ["Category", "Planned", "Actual", "Remaining"])
+    table_headers(ws, 4, ["Category", "Planned", "Actual", "Remaining"], start_col=2)
     start = L0
     for i, (cat, plan, actual) in enumerate(BUDGET):
         r = start + i
-        ws.cell(row=r, column=1, value=cat).style = "td_left"
-        cp = ws.cell(row=r, column=2, value=plan); cp.style = "input"; cp.number_format = '"$"#,##0'
-        ca = ws.cell(row=r, column=3, value=actual); ca.style = "input"; ca.number_format = '"$"#,##0'
-        cr = ws.cell(row=r, column=4, value=f"=B{r}-C{r}"); cr.style = "td"; cr.number_format = '"$"#,##0;[Red]-"$"#,##0'
+        ws.cell(row=r, column=2, value=cat).style = "td_left"
+        cp = ws.cell(row=r, column=3, value=plan); cp.style = "input"; cp.number_format = '"$"#,##0'
+        ca = ws.cell(row=r, column=4, value=actual); ca.style = "input"; ca.number_format = '"$"#,##0'
+        cr = ws.cell(row=r, column=5, value=f"=C{r}-D{r}"); cr.style = "td"; cr.number_format = '"$"#,##0;[Red]-"$"#,##0'
         if i % 2:
-            for c in range(1, 5):
+            for c in range(2, 6):
                 ws.cell(row=r, column=c).fill = fill(MUTED_ROW)
     end = start + len(BUDGET) - 1; tot = end + 1
-    ws.cell(row=tot, column=1, value="TOTAL").style = "th"
-    for col in (2, 3, 4):
+    ws.cell(row=tot, column=2, value="TOTAL").style = "th"
+    for col in (3, 4, 5):
         L = get_column_letter(col)
         c = ws.cell(row=tot, column=col, value=f"=SUM({L}{start}:{L}{end})")
         c.style = "td"; c.font = Font(bold=True, color=PRIMARY); c.fill = fill(SURFACE); c.number_format = '"$"#,##0'
-    nrange(wb, "BudgetPlan", "Budget", "B", start, end)
-    nrange(wb, "BudgetActual", "Budget", "C", start, end)
-    cell_name(wb, "BudgetPlanTotal", "Budget", f"$B${tot}")
-    cell_name(wb, "BudgetSpent", "Budget", f"$C${tot}")
-    ws.conditional_formatting.add(f"C{start}:C{end}",
+    nrange(wb, "BudgetPlan", "Budget", "C", start, end)
+    nrange(wb, "BudgetActual", "Budget", "D", start, end)
+    cell_name(wb, "BudgetPlanTotal", "Budget", f"$C${tot}")
+    cell_name(wb, "BudgetSpent", "Budget", f"$D${tot}")
+    ws.conditional_formatting.add(f"D{start}:D{end}",
         DataBarRule(start_type="num", start_value=0, end_type="num", end_value=480, color=PRIMARY, showValue=True))
-    merge_set(ws, "B15:D15", "THE BOTTOM LINE", "section_gold")
+    merge_set(ws, "B15:E15", "THE BOTTOM LINE", "section_gold")
     rows2 = [("Total budget", "=BudgetPlanTotal", '"$"#,##0'), ("Spent so far", "=BudgetSpent", '"$"#,##0'),
              ("Remaining", "=BudgetPlanTotal-BudgetSpent", '"$"#,##0'),
              ("% of budget used", "=IFERROR(BudgetSpent/BudgetPlanTotal,0)", "0%"),
@@ -523,29 +523,29 @@ def build_fees(wb):
     set_widths(ws, [2, 16, 22, 12, 12, 12, 2])
     luxe_header(ws, "F", "🧾  SCHOOL FEES & PAYMENT TRACKER",
                 "Every registration, activity & fee — paid, partial or still owed.")
-    table_headers(ws, 4, ["Child", "Fee", "Amount", "Paid", "Owed"])
+    table_headers(ws, 4, ["Child", "Fee", "Amount", "Paid", "Owed"], start_col=2)
     start = L0
     for i, (child, fee, amt, paid) in enumerate(FEES):
         r = start + i
-        ws.cell(row=r, column=1, value=child).style = "td_left"
-        ws.cell(row=r, column=2, value=fee).style = "td_left"
-        ca = ws.cell(row=r, column=3, value=amt); ca.style = "input"; ca.number_format = '"$"#,##0'
-        cp = ws.cell(row=r, column=4, value=paid); cp.style = "input"; cp.number_format = '"$"#,##0'
-        co = ws.cell(row=r, column=5, value=f"=C{r}-D{r}"); co.style = "td"; co.number_format = '"$"#,##0'
+        ws.cell(row=r, column=2, value=child).style = "td_left"
+        ws.cell(row=r, column=3, value=fee).style = "td_left"
+        ca = ws.cell(row=r, column=4, value=amt); ca.style = "input"; ca.number_format = '"$"#,##0'
+        cp = ws.cell(row=r, column=5, value=paid); cp.style = "input"; cp.number_format = '"$"#,##0'
+        co = ws.cell(row=r, column=6, value=f"=D{r}-E{r}"); co.style = "td"; co.number_format = '"$"#,##0'
         if i % 2:
-            for c in range(1, 6):
+            for c in range(2, 7):
                 ws.cell(row=r, column=c).fill = fill(MUTED_ROW)
     end = start + len(FEES) - 1; tot = end + 1
-    ws.cell(row=tot, column=1, value="TOTAL").style = "th"; ws.cell(row=tot, column=2).style = "th"
-    for col in (3, 4, 5):
+    ws.cell(row=tot, column=2, value="TOTAL").style = "th"; ws.cell(row=tot, column=3).style = "th"
+    for col in (4, 5, 6):
         L = get_column_letter(col)
         c = ws.cell(row=tot, column=col, value=f"=SUM({L}{start}:{L}{end})")
         c.style = "td"; c.font = Font(bold=True, color=PRIMARY); c.fill = fill(SURFACE); c.number_format = '"$"#,##0'
-    nrange(wb, "FeeAmt", "Fees", "C", start, end)
-    nrange(wb, "FeePaid", "Fees", "D", start, end)
-    cell_name(wb, "FeeAmtTotal", "Fees", f"$C${tot}")
-    cell_name(wb, "FeePaidTotal", "Fees", f"$D${tot}")
-    ws.conditional_formatting.add(f"E{start}:E{end}",
+    nrange(wb, "FeeAmt", "Fees", "D", start, end)
+    nrange(wb, "FeePaid", "Fees", "E", start, end)
+    cell_name(wb, "FeeAmtTotal", "Fees", f"$D${tot}")
+    cell_name(wb, "FeePaidTotal", "Fees", f"$E${tot}")
+    ws.conditional_formatting.add(f"F{start}:F{end}",
         CellIsRule(operator="greaterThan", formula=["0"], fill=fill(WARN_BG)))
 
 
@@ -657,19 +657,19 @@ def build_grades(wb):
     set_widths(ws, [2, 16, 12, 12, 12, 12, 22, 2])
     luxe_header(ws, "G", "🎓  GRADES & REPORT-CARD OVERVIEW",
                 "A simple term-by-term snapshot per child — celebrate wins, catch dips early.")
-    table_headers(ws, 4, ["Child", "Q1", "Q2", "Q3", "Q4", "Notes"])
+    table_headers(ws, 4, ["Child", "Q1", "Q2", "Q3", "Q4", "Notes"], start_col=2)
     kids = ["Mateo", "Sofia", "Liam", "Ava", "Noah", "Emma"]
     seed = {"Mateo": ("A-", "", "", ""), "Sofia": ("B+", "", "", ""), "Liam": ("S", "", "", ""),
             "Ava": ("S+", "", "", ""), "Noah": ("S", "", "", ""), "Emma": ("😊", "", "", "")}
     start = L0
     for i, k in enumerate(kids):
         r = start + i
-        ws.cell(row=r, column=1, value=k).style = "td_left"
+        ws.cell(row=r, column=2, value=k).style = "td_left"
         for j in range(4):
-            ws.cell(row=r, column=2 + j, value=seed[k][j]).style = "input"
-        ws.cell(row=r, column=6, value="—").style = "td_left"
+            ws.cell(row=r, column=3 + j, value=seed[k][j]).style = "input"
+        ws.cell(row=r, column=7, value="—").style = "td_left"
         if i % 2:
-            for c in range(1, 7):
+            for c in range(2, 8):
                 ws.cell(row=r, column=c).fill = fill(MUTED_ROW)
     ws.freeze_panes = "A5"
     merge_set(ws, "B12:F12", "REPORT-CARD DATES", "section_gold"); ws.row_dimensions[12].height = 22
@@ -760,8 +760,8 @@ def build_dashboard(wb):
         mid_color="FFFFF3CD", end_type="num", end_value=1, end_color="FF" + HIGHLIGHT))
     # charts
     db = DoughnutChart(); db.title = "Budget by Category"; db.height = 7.4; db.width = 8.4
-    db.add_data(Reference(wb["Budget"], min_col=3, min_row=4, max_row=13), titles_from_data=True)
-    db.set_categories(Reference(wb["Budget"], min_col=1, min_row=5, max_row=13)); db.dataLabels = no_labels()
+    db.add_data(Reference(wb["Budget"], min_col=4, min_row=4, max_row=13), titles_from_data=True)
+    db.set_categories(Reference(wb["Budget"], min_col=2, min_row=5, max_row=13)); db.dataLabels = no_labels()
     ws.add_chart(db, "H13")
     ws.row_dimensions[21].height = 26
     merge_set(ws, "B21:G21", "WHAT'S DUE NEXT — see the Events tab", "section")
