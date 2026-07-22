@@ -76,15 +76,18 @@ START_HERE.pdf                      ← onboarding quick-start
 
 ---
 
-## E. Pricing
+## E. Pricing  (all SKUs are the same digital files — a product, never a service)
 
-| SKU | Format | Price |
+| SKU | What the buyer downloads | Price |
 | --- | ------ | ----- |
-| FCC-GS   | Google Sheets only | $19 |
-| FCC-PDF  | Printable PDF only | $19 |
-| FCC-BUNDLE | Sheets + PDF + Quick-Start | **$29** |
-| FCC-PLUS | Bundle + cost add-on | $39 |
-| FCC-PRO  | Commercial / multi-location license | $99 |
+| FCC-GS   | The Google Sheets / Excel file only | $19 |
+| FCC-PDF  | The printable PDF only | $19 |
+| FCC-BUNDLE | The spreadsheet + the printable PDF | **$29** |
+| FCC-COMM | The same files + a commercial-use file license | $49 |
+
+> Etsy Services-policy note: keep every listing a plain digital download. Do not
+> advertise setup help, custom work, consultations, or "done-for-you" — that is what
+> gets a listing removed and earns a strike.
 
 - **Steady all-year demand** with a January peak (new-year cost control). Priced
   above consumer planners — a single point of food cost is real money.

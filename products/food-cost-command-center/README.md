@@ -13,7 +13,7 @@
 | **Target** | Restaurants & cafés · bars & pubs · food trucks & caterers · bakeries & ghost kitchens · chefs & kitchen managers · anyone who tracks food cost |
 | **Angle** | Count it, cost it, control it — know your food cost to the point. |
 | **Formats** | Google Sheets (14-tab system) + Excel `.xlsx` edition + 12-page printable PDF |
-| **Pricing** | $19 single · **$29 bundle** (Sheets + PDF) · $39 with the cost add-on · $99 commercial / multi-location license |
+| **Pricing** | $19 single file · **$29 bundle** (Sheets + PDF) · $49 with a commercial-use file license — all the *same digital files*, never a service |
 
 ---
 

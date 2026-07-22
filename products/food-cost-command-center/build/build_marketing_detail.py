@@ -216,7 +216,7 @@ def render_howitworks(out):
 def render_value(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     header_band(img, "EVERYTHING YOU GET", "One System, Whole Kitchen",
-                "Instant download · lifetime access · free updates")
+                "Instant digital download · yours to keep · Google Sheets & Excel")
     d = ImageDraw.Draw(img)
     margin = 84
     lx0, lx1 = margin, SIZE // 2 - 14
@@ -228,7 +228,7 @@ def render_value(out):
         "12-page printable PDF pack", "Live dashboard + Inventory Score",
         "Period food-cost % engine", "Inventory valuation to the dollar",
         "Usage vs theoretical variance", "Par, ordering & vendor tracking",
-        "Price tracker, menu costing & waste", "Start-Here guide + free updates",
+        "Price tracker, menu costing & waste", "Start-Here quick-start guide",
     ]
     for i, item in enumerate(includes):
         yy = 600 + i * 64
@@ -255,8 +255,8 @@ def render_value(out):
                             "✓ Print at home — US Letter PDF"]):
         od.text((rx0 + 44, 1020 + i * 44), t, font=fs(21, bold=False), fill=TEXT, anchor="lm")
     od.rounded_rectangle((rx0 + 40, 1160, rx1 - 40, 1264), radius=14, fill=MINT_BG)
-    od.text((rx0 + 64, 1188), "★  Stuck on setup?", font=fs(21), fill=PRIMARY, anchor="lm")
-    od.text((rx0 + 64, 1228), "Message me — I help within 24 hours.", font=fs(19, bold=False), fill=TEXT, anchor="lm")
+    od.text((rx0 + 64, 1188), "★  Instant download", font=fs(21), fill=PRIMARY, anchor="lm")
+    od.text((rx0 + 64, 1228), "Your files are ready the moment you buy.", font=fs(19, bold=False), fill=TEXT, anchor="lm")
     img.alpha_composite(ov)
     pill(img, SIZE // 2, 1420, "COUNT IT · COST IT · CONTROL IT", font=fs(27), pad_x=44, pad_y=22,
          grad=(PRIMARY_LT, PRIMARY_DK))

@@ -149,10 +149,13 @@ just type over it with your own counts and invoices. Confirm figures with your o
 books.
 
 ──────────────────────────
-⚡ INSTANT DOWNLOAD
+⚡ INSTANT DIGITAL DOWNLOAD
 ──────────────────────────
-Digital product — no physical item ships. All sales are final due to instant
-download, but message me if anything isn't working and I'll help within 24 hrs.
+This is a ready-made digital template — a finished spreadsheet file plus a printable
+PDF. No physical item ships, and this is a product, not a service: there is no
+custom work, consultation, or done-for-you setup. Your files are available to
+download the moment your payment clears. Because it's an instant digital download,
+all sales are final.
 
 ──────────────────────────
 🎁 PERFECT FOR
@@ -171,21 +174,28 @@ cost and control it to the point.
 
 ## 5. PRICING & RANK BOOSTERS
 
-| SKU | Format | Price |
-| --- | ------ | ----- |
-| FCC-GS   | Google Sheets only | $19 |
-| FCC-PDF  | Printable PDF only | $19 |
-| FCC-BUNDLE | Sheets + PDF + Quick-Start | **$29** |
-| FCC-PLUS | Bundle + cost add-on | $39 |
-| FCC-PRO  | Commercial / multi-location license | $99 |
+> ⚠ **Etsy Services-policy safety:** every SKU below is the **same digital files**
+> at a different bundle — never a service. Do **not** offer setup help, custom work,
+> consultations, or "done-for-you" anything in the listing; that is what Etsy's
+> Services policy prohibits and what gets listings removed. Keep every variation a
+> plain digital download.
 
-- **Steady all-year demand** with a January peak (new-year cost control). Price
-  above consumer planners — a single point of food cost is real money on a
-  restaurant's volume.
-- Use all 10 photos + a walkthrough video. Lead photo = the feature-forward hero;
-  the **period food-cost engine** and **usage variance** are your strongest
-  differentiators — most listings are a plain count sheet.
+| SKU | What the buyer downloads | Price |
+| --- | ------ | ----- |
+| FCC-GS   | The Google Sheets / Excel file only | $19 |
+| FCC-PDF  | The printable PDF only | $19 |
+| FCC-BUNDLE | The spreadsheet + the printable PDF (both files) | **$29** |
+| FCC-COMM | The same files, with a commercial-use file license (use it in your own business) | $49 |
+
+- A **commercial-use license** is a permission-to-use term attached to the *file* —
+  it is a digital product, not a service. That is allowed on Etsy; offering to *do
+  the work for* the buyer is not.
+- **Steady all-year demand** with a January peak (new-year cost control). Priced as
+  a finished template.
+- Use all 10 photos + a walkthrough video that shows the *file* (not you offering
+  help). Lead photo = the feature-forward hero; the **period food-cost engine** and
+  **usage variance** are your strongest differentiators.
 - Cross-sell your **Restaurant**, **Recipe Costing** and **Ghost Kitchen** products
-  — same buyer, natural "food business" bundle. Answer the FAQ: *"Does it work for
-  a bar / café / food truck?"* → yes; it's built for any food business.
-- Bundle is the hero SKU; the add-on and commercial license lift AOV.
+  — same buyer, natural "food business" bundle. It's fine to answer buyer questions
+  in Messages after a sale, but never advertise support, setup, or updates as part
+  of the listing.
