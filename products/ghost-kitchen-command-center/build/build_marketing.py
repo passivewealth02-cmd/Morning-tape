@@ -1,4 +1,4 @@
-"""Marketing image set for Catering Command Center™ (6 images, 2000x2000)."""
+"""Marketing image set for Ghost Kitchen Command Center™ (6 images, 2000x2000)."""
 from __future__ import annotations
 import os
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -16,10 +16,10 @@ SANS_B = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 SANS_R = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 SERIF_B = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
 
-TABS = ["Dashboard", "Plate Costing", "Menu Packages", "Event Quotes", "Staffing", "Rentals",
-        "Bookings", "Inventory", "Waste Log", "Ordering", "Cash & Deposits", "Clients", "Settings"]
+TABS = ["Dashboard", "Item Margin", "Menu & Margins", "Platform P&L", "Virtual Brands", "Packaging",
+        "Order Volume", "Inventory", "Waste Log", "Ordering", "Payouts", "Promotions", "Settings"]
 
-FILE_LABEL = "Catering_Command_Center.xlsx — Wildflower & Oak · Camille"
+FILE_LABEL = "Ghost_Kitchen_Command_Center.xlsx — Midnight Kitchen · Devin"
 
 
 def fs(s, bold=True):
@@ -132,8 +132,8 @@ def gold_divider(c, cx, cy, width=560, color=GOLD_HI):
     d.polygon([(cx, cy - 12), (cx + 16, cy), (cx, cy + 12), (cx - 16, cy)], fill=color)
 
 
-def cloche_crest(c, cx, cy, r=56, glow=True):
-    """Brand crest — a silver serving cloche on a plate: the icon of catering."""
+def ghost_crest(c, cx, cy, r=56, glow=True):
+    """Brand crest — a friendly ghost: the icon of the ghost kitchen."""
     if glow:
         radial_glow(c, cx, cy, int(r * 2.1), GOLD_HI, 90)
     grad_round(c, (cx - r, cy - r, cx + r, cy + r), 22, PRIMARY_LT, PRIMARY_DK, outline=GOLD_LT, width=4)
@@ -141,23 +141,30 @@ def cloche_crest(c, cx, cy, r=56, glow=True):
     d.rounded_rectangle((cx - r + 10, cy - r + 10, cx + r - 10, cy + r - 10), radius=16, outline=GOLD_HI, width=2)
     c.alpha_composite(ov)
     ov = Image.new("RGBA", c.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
-    # dome (top half of a circle)
-    dcx, dcy, rd = cx, cy + r * 0.16, r * 0.46
-    d.pieslice((dcx - rd, dcy - rd, dcx + rd, dcy + rd), 180, 360, fill=GOLD_HI, outline=(150, 120, 70))
-    # dome shine
-    d.arc((dcx - rd * 0.6, dcy - rd * 0.7, dcx + rd * 0.2, dcy + rd * 0.1), start=200, end=300, fill=WHITE, width=3)
-    # knob on top
-    d.ellipse((dcx - r * 0.07, dcy - rd - r * 0.14, dcx + r * 0.07, dcy - rd + r * 0.02), fill=WHITE, outline=(150, 120, 70))
-    # plate under the dome
-    d.line((dcx - rd - r * 0.14, dcy + 2, dcx + rd + r * 0.14, dcy + 2), fill=WHITE, width=int(r * 0.10))
-    # steam curls above the knob
-    for sx in (dcx - r * 0.14, dcx + r * 0.14):
-        d.arc((sx - r * 0.10, dcy - rd - r * 0.44, sx + r * 0.10, dcy - rd - r * 0.16), start=120, end=360, fill=WHITE, width=2)
+    # ghost body — a rounded dome top with straight-ish sides
+    gw, gtop, gbot = r * 0.42, cy - r * 0.42, cy + r * 0.40
+    left, right = cx - gw, cx + gw
+    d.pieslice((left, gtop, right, gtop + gw * 2), 180, 360, fill=GOLD_HI)
+    d.rectangle((left, gtop + gw, right, gbot), fill=GOLD_HI)
+    # wavy bottom hem (three bumps)
+    bump = gw * 2 / 3
+    for k in range(3):
+        bx0 = left + k * bump
+        d.pieslice((bx0, gbot - bump * 0.5, bx0 + bump, gbot + bump * 0.5), 0, 180, fill=GOLD_HI)
+    # cut the notches between bumps back out with the badge gradient color
+    for k in range(2):
+        nx = left + bump * (k + 1)
+        d.pieslice((nx - bump * 0.5, gbot - bump * 0.5, nx + bump * 0.5, gbot + bump * 0.5), 0, 180, fill=PRIMARY_DK)
+    # eyes
+    ey = cy - r * 0.06
+    for ex in (cx - r * 0.16, cx + r * 0.16):
+        d.ellipse((ex - r * 0.08, ey - r * 0.11, ex + r * 0.08, ey + r * 0.11), fill=PRIMARY_DK)
     c.alpha_composite(ov)
 
 
-mug_crest = cloche_crest
-book_crest = cloche_crest
+cloche_crest = ghost_crest
+mug_crest = ghost_crest
+book_crest = ghost_crest
 
 
 def stat_chip(c, cx, cy, big, small, w=400, h=150):
@@ -239,7 +246,7 @@ def app_window(img, box, active_idx, content_fn, file_label=FILE_LABEL):
     grad_round(img, (sb[0], y1 - 24, sb[2], y1), 24, PRIMARY_DK, PRIMARY_DK)
     ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
     bx = sb[0] + 26
-    od.text((bx, sb[1] + 26), "CATERING", font=fs(16), fill=GOLD_HI, anchor="lt")
+    od.text((bx, sb[1] + 26), "KITCHEN", font=fs(16), fill=GOLD_HI, anchor="lt")
     od.text((bx, sb[1] + 49), "14-tab system", font=fs(14, bold=False), fill=(170, 200, 192), anchor="lt")
     od.line((sb[0] + 20, sb[1] + 76, sb[2] - 16, sb[1] + 76), fill=(255, 255, 255, 40), width=1)
     list_top = sb[1] + 84
@@ -262,30 +269,30 @@ def app_window(img, box, active_idx, content_fn, file_label=FILE_LABEL):
 
 
 KPIS = [
-    ("EVENTS", "6", "booked"),
-    ("AVG GUESTS", "73", "per event"),
-    ("REVENUE", "$21,560", "booked"),
-    ("AVG PER HEAD", "$49", "per guest"),
-    ("FOOD COST", "26%", "of revenue"),
-    ("TOP PACKAGE", "Wedding Prem.", "$7,550/event"),
-    ("AVG EVENT", "$3,593", "value"),
-    ("AVG MARGIN", "32%", "per event"),
-    ("LABOR", "25%", "of revenue"),
-    ("PACKAGES", "8", "on the menu"),
-    ("WASTE", "2.0%", "of revenue"),
-    ("CATERING SCORE", "90%", "healthy"),
+    ("MENU ITEMS", "8", "on the menu"),
+    ("AVG APP PRICE", "$11.83", "on the apps"),
+    ("FOOD COST", "26%", "of app price"),
+    ("AVG NET MARGIN", "44%", "after the apps"),
+    ("BLENDED COMM", "24%", "apps take"),
+    ("TOP ITEM", "Birria Tacos", "$6.11 net"),
+    ("WEEKLY ORDERS", "800", "across apps"),
+    ("WEEKLY REVENUE", "$17,360", "gross"),
+    ("NET PAYOUT", "$13,117", "after apps"),
+    ("AVG ORDER", "$21.70", "per order"),
+    ("VIRTUAL BRANDS", "4", "one kitchen"),
+    ("KITCHEN SCORE", "90%", "healthy"),
 ]
 
-WEEK = [("Gala", 6360), ("Wed", 7550), ("B-day", 2170), ("Lunch", 840), ("Mixer", 2640), ("BBQ", 2000)]
+WEEK = [("DoorDash", 5139), ("UberEats", 3528), ("Grubhub", 1800), ("Direct", 2650)]
 
 
 def content_dashboard(img, cbox):
     x0, y0, x1, y1 = cbox; pad = 30
     d = ImageDraw.Draw(img); d.rectangle(cbox, fill=BG)
-    d.text((x0 + pad, y0 + 22), "Catering Dashboard", font=fs(32), fill=PRIMARY, anchor="lt")
-    d.text((x0 + pad, y0 + 64), "Wildflower & Oak · Camille  ·  cost every head, quote with confidence, book more profit", font=fs(19, bold=False), fill=TEXT_MUTED, anchor="lt")
+    d.text((x0 + pad, y0 + 22), "Kitchen Dashboard", font=fs(32), fill=PRIMARY, anchor="lt")
+    d.text((x0 + pad, y0 + 64), "Midnight Kitchen · Devin  ·  beat the apps, know your real margin after commission", font=fs(19, bold=False), fill=TEXT_MUTED, anchor="lt")
     d.rounded_rectangle((x1 - pad - 190, y0 + 26, x1 - pad, y0 + 62), radius=18, fill=MINT_BG)
-    d.text((x1 - pad - 95, y0 + 44), "● 32% margin", font=fs(15), fill=PRIMARY, anchor="mm")
+    d.text((x1 - pad - 95, y0 + 44), "● 44% net margin", font=fs(15), fill=PRIMARY, anchor="mm")
     gx = x0 + pad; gy = y0 + 98; gw = (x1 - x0 - 2 * pad); gap = 14
     kw = (gw - 5 * gap) / 6; kh = 116
     for i, (lab, val, sub) in enumerate(KPIS):
@@ -298,28 +305,28 @@ def content_dashboard(img, cbox):
         d.text((kx + 14, ky + 58), val, font=vf, fill=PRIMARY, anchor="lm")
         d.text((kx + 14, ky + 96), sub, font=fs(12, bold=False), fill=TEXT_MUTED, anchor="lm")
     cy_top = gy + 2 * (kh + gap) + 18
-    d.text((gx, cy_top), "CATERING HEALTH · FOOD COST · REVENUE BY EVENT", font=fs(20), fill=ACCENT, anchor="lt")
+    d.text((gx, cy_top), "KITCHEN HEALTH · COMMISSION · NET PAYOUT BY PLATFORM", font=fs(20), fill=ACCENT, anchor="lt")
     panels_y = cy_top + 34; panel_h = (y1 - panels_y - pad); pw = (gw - 3 * gap) / 4
     px = gx
     d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
-    d.text((px + 16, panels_y + 14), "Catering Health", font=fs(17), fill=ACCENT, anchor="lt")
+    d.text((px + 16, panels_y + 14), "Kitchen Health", font=fs(17), fill=ACCENT, anchor="lt")
     hbars(img, d, (px + 20, panels_y + 50, px + pw - 16, panels_y + panel_h - 16),
-          [("Food cost on target", 1.0, "100%"), ("Margin per event", 1.0, "100%"), ("Packages costed", 1.0, "100%"),
-           ("Labor in control", 0.37, "37%"), ("Bookings vs goal", 1.0, "100%"), ("Gross margin", 1.0, "100%")],
+          [("Food cost on target", 1.0, "100%"), ("Net margin healthy", 1.0, "100%"), ("Menu costed", 1.0, "100%"),
+           ("Commission control", 0.39, "39%"), ("Direct-order mix", 1.0, "100%"), ("Gross margin", 1.0, "100%")],
           color=(GOLD_HI, GOLD))
     px = gx + (pw + gap)
     d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
-    d.text((px + 16, panels_y + 14), "Food Cost", font=fs(17), fill=ACCENT, anchor="lt")
+    d.text((px + 16, panels_y + 14), "The Apps' Cut", font=fs(17), fill=ACCENT, anchor="lt")
     donut(d, px + pw * 0.44, panels_y + panel_h * 0.50, min(panel_h * 0.27, pw * 0.27),
-          [(26, ACCENT), (74, PRIMARY)], "26%", "of rev")
-    legend(d, px + pw * 0.06, panels_y + panel_h - 96, [(PRIMARY, "Gross margin 74%"), (ACCENT, "Food cost 26%")], 15, 32)
+          [(24, DANGER), (76, PRIMARY)], "24%", "commission")
+    legend(d, px + pw * 0.06, panels_y + panel_h - 96, [(PRIMARY, "You keep 76%"), (DANGER, "Apps take 24%")], 15, 32)
     px = gx + 2 * (pw + gap)
     d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
-    d.text((px + 16, panels_y + 14), "Revenue by Event", font=fs(17), fill=ACCENT, anchor="lt")
-    vbars(img, d, (px + 18, panels_y + 60, px + pw - 14, panels_y + panel_h - 10), WEEK, 7550)
+    d.text((px + 16, panels_y + 14), "Net by Platform", font=fs(17), fill=ACCENT, anchor="lt")
+    vbars(img, d, (px + 18, panels_y + 60, px + pw - 14, panels_y + panel_h - 10), WEEK, 5139)
     px = gx + 3 * (pw + gap)
     d.rounded_rectangle((px, panels_y, px + pw, panels_y + panel_h), radius=12, fill=WHITE, outline=GRID, width=2)
-    d.text((px + 16, panels_y + 14), "Catering Score", font=fs(17), fill=ACCENT, anchor="lt")
+    d.text((px + 16, panels_y + 14), "Kitchen Score", font=fs(17), fill=ACCENT, anchor="lt")
     donut(d, px + pw * 0.5, panels_y + panel_h * 0.54, min(panel_h * 0.30, pw * 0.30),
           [(90, PRIMARY), (10, SURFACE)], "90%", "healthy")
 
@@ -367,67 +374,66 @@ def _table(img, cbox, title, subtitle, headers, colf, rows, total_row=None,
 
 def content_menu(img, cbox):
     rows = [
-        ("Plated Dinner", "$14.00", "$48.00", "$34.00", "29%"),
-        ("Wedding Premium", "$22.00", "$75.00", "$53.00", "29%"),
-        ("BBQ Buffet", "$11.00", "$34.00", "$23.00", "32%"),
-        ("Buffet Classic", "$9.50", "$32.00", "$22.50", "30%"),
-        ("Cocktail Reception", "$8.00", "$28.00", "$20.00", "29%"),
-        ("Boxed Lunch", "$6.50", "$18.00", "$11.50", "36%"),
+        ("Signature Burrito", "$13.95", "$3.80", "$0.65", "43%"),
+        ("Birria Tacos (3)", "$14.95", "$4.40", "$0.70", "41%"),
+        ("Crispy Chicken Sand.", "$11.95", "$3.20", "$0.55", "44%"),
+        ("Vegan Power Bowl", "$12.95", "$3.30", "$0.60", "45%"),
+        ("Wings (10 pc)", "$13.95", "$4.10", "$0.65", "41%"),
+        ("Loaded Fries", "$8.95", "$2.10", "$0.45", "47%"),
     ]
-    _table(img, cbox, "Menu Packages",
-           "Cost/head, price/head, margin & food-cost % on every package — price for profit",
-           ["PACKAGE", "COST/HD", "PRICE/HD", "MARGIN", "FOOD %"],
-           [0.0, 0.42, 0.58, 0.74, 0.88], rows)
+    _table(img, cbox, "Menu & Margins",
+           "App price, food & packaging — the true NET margin after the app's 25% cut, on every item",
+           ["ITEM", "APP PRICE", "FOOD", "PKG", "NET %"],
+           [0.0, 0.40, 0.58, 0.72, 0.88], rows)
 
 
-def content_plate(img, cbox):
+def content_itemmargin(img, cbox):
     rows = [
-        ("Beef tenderloin (6 oz)", "$6.50"),
-        ("Starch + seasonal veg", "$2.20"),
-        ("Salad + artisan bread", "$1.40"),
-        ("Plated dessert", "$1.80"),
-        ("Disposables / rentals", "$1.20"),
-        ("Kitchen labor alloc", "$0.90"),
+        ("App menu price", "$13.95"),
+        ("App commission (25%)", "−$3.49"),
+        ("Food cost", "−$3.80"),
+        ("Packaging", "−$0.65"),
     ]
-    _table(img, cbox, "Plate Costing — Plated Dinner",
-           "Cost a plate by the head: protein, sides, dessert & overhead. The engine behind your packages.",
-           ["COMPONENT", "PER-HEAD COST"],
+    _table(img, cbox, "Item Margin — Signature Burrito",
+           "The app takes its cut FIRST — start from the app price and subtract to the true net you keep.",
+           ["LINE", "AMOUNT"],
            [0.0, 0.72], rows,
-           total_row=("COST PER HEAD  ·  29% at $48", "$14.00"))
+           total_row=("NET MARGIN YOU KEEP  ·  43%", "$6.01"))
 
 
 def content_pnl(img, cbox):
     x0, y0, x1, y1 = cbox; pad = 30
     d = ImageDraw.Draw(img); d.rectangle(cbox, fill=BG)
-    d.text((x0 + pad, y0 + 22), "Event P&L — Corporate Gala", font=fs(32), fill=PRIMARY, anchor="lt")
-    d.text((x0 + pad, y0 + 62), "120 guests, Plated Dinner — a full profit picture before you say yes.",
+    d.text((x0 + pad, y0 + 22), "Platform P&L", font=fs(32), fill=PRIMARY, anchor="lt")
+    d.text((x0 + pad, y0 + 62), "What each app really pays you — orders, gross, the commission it keeps, and your net.",
            font=fs(18, bold=False), fill=TEXT_MUTED, anchor="lt")
-    rows = [("Revenue  ·  120 × $48 + $600 service", "$6,360", PRIMARY),
-            ("Food cost  ·  120 × $14", "−$1,680", DANGER),
-            ("Staff  ·  full crew", "−$1,400", DANGER),
-            ("Rentals", "−$900", DANGER)]
+    rows = [("DoorDash", "$7,040", "27%", "$5,139"), ("Uber Eats", "$5,040", "30%", "$3,528"),
+            ("Grubhub", "$2,400", "25%", "$1,800"), ("Direct Web", "$2,880", "8%", "$2,650")]
+    fxs = [0.0, 0.42, 0.62, 0.82]
     callout_h = 150; gap = 44; rh = 118
-    n_units = 1 + len(rows) + 1  # header + rows + margin total
+    n_units = 1 + len(rows) + 1  # header + rows + total
     top_region = y0 + 110
     block_h = rh * n_units + gap + callout_h
     ty = top_region + max(((y1 - pad) - top_region - block_h) / 2, 0)
     grad_round(img, (x0 + pad, ty, x1 - pad, ty + rh), 8, PRIMARY_LT, PRIMARY_DK)
-    for h, fx in zip(["LINE ITEM", "AMOUNT"], [0.0, 0.80]):
+    for h, fx in zip(["PLATFORM", "GROSS", "COMM", "NET PAYOUT"], fxs):
         d.text((x0 + pad + 14 + (x1 - x0 - 2 * pad) * fx, ty + rh / 2), h, font=fs(16), fill=WHITE, anchor="lm" if fx == 0 else "mm")
-    for i, (label, val, col) in enumerate(rows):
+    for i, row in enumerate(rows):
         ry = ty + rh + i * rh
         if i % 2:
             d.rectangle((x0 + pad, ry, x1 - pad, ry + rh), fill=ROW_ALT)
-        d.text((x0 + pad + 14, ry + rh / 2), label, font=fs(18, bold=True), fill=PRIMARY, anchor="lm")
-        d.text((x0 + pad + 14 + (x1 - x0 - 2 * pad) * 0.80, ry + rh / 2), val, font=fs(18, bold=True), fill=col, anchor="mm")
+        for ci, (val, fx) in enumerate(zip(row, fxs)):
+            col = DANGER if ci == 2 else (PRIMARY if ci in (0, 3) else TEXT)
+            d.text((x0 + pad + 14 + (x1 - x0 - 2 * pad) * fx, ry + rh / 2), val, font=fs(18, bold=(ci in (0, 2, 3))),
+                   fill=col, anchor="lm" if fx == 0 else "mm")
     ry = ty + rh + len(rows) * rh
     d.rectangle((x0 + pad, ry, x1 - pad, ry + rh), fill=SURFACE)
-    d.text((x0 + pad + 14, ry + rh / 2), "EVENT MARGIN  ·  37%", font=fs(18), fill=PRIMARY, anchor="lm")
-    d.text((x0 + pad + 14 + (x1 - x0 - 2 * pad) * 0.80, ry + rh / 2), "$2,380", font=fs(18), fill=PRIMARY, anchor="mm")
+    for ci, (val, fx) in enumerate(zip(["TOTAL", "$17,360", "24%", "$13,117"], fxs)):
+        d.text((x0 + pad + 14 + (x1 - x0 - 2 * pad) * fx, ry + rh / 2), val, font=fs(18), fill=DANGER if ci == 2 else PRIMARY, anchor="lm" if fx == 0 else "mm")
     by = ry + rh + gap
-    grad_round(img, (x0 + pad, by, x1 - pad, by + callout_h), 14, PRIMARY_LT, PRIMARY_DK, outline=GOLD_LT, width=3)
+    grad_round(img, (x0 + pad, by, x1 - pad, by + callout_h), 14, (200, 90, 90), DANGER, outline=GOLD_LT, width=3)
     ov = Image.new("RGBA", img.size, (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-    od.text(((x0 + x1) / 2, by + callout_h / 2), "Know the profit on every booking — before you commit the kitchen", font=fs(21), fill=WHITE, anchor="mm")
+    od.text(((x0 + x1) / 2, by + callout_h / 2), "The apps take $4,243 a week — direct orders keep it in your pocket", font=fs(21), fill=WHITE, anchor="mm")
     img.alpha_composite(ov)
 
 
@@ -435,13 +441,13 @@ def render_hero(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     premium_bg(img, band_h=640)
     d = ImageDraw.Draw(img)
-    cloche_crest(img, SIZE // 2, 132, r=56)
-    pill(img, SIZE // 2, 256, "THE COMPLETE CATERING BUSINESS SYSTEM", font=fs(20), pad_x=40, pad_y=20)
-    wordmark(img, SIZE // 2, 400, "CATERING COMMAND CENTER", 76, max_w=1780)
+    ghost_crest(img, SIZE // 2, 132, r=56)
+    pill(img, SIZE // 2, 256, "THE COMPLETE DELIVERY-ONLY SYSTEM", font=fs(20), pad_x=40, pad_y=20)
+    wordmark(img, SIZE // 2, 400, "GHOST KITCHEN COMMAND CENTER", 76, max_w=1820)
     gold_divider(img, SIZE // 2, 500, width=520)
-    tc(d, (SIZE // 2, 546), "Plate costing, package pricing, event quotes & P&L, staffing & bookings — one system.",
+    tc(d, (SIZE // 2, 546), "Item margin after commission, platform P&L, virtual brands & payouts — one system.",
        fs(20, bold=False), (224, 213, 190))
-    chips = [("14", "CONNECTED TABS"), ("12", "PRINTABLE PAGES"), ("QUOTE", "& P&L ENGINE")]
+    chips = [("14", "CONNECTED TABS"), ("12", "PRINTABLE PAGES"), ("MARGIN", "ENGINE")]
     cw = 440
     total = len(chips) * cw + (len(chips) - 1) * 28
     startx = (SIZE - total) // 2 + cw // 2
@@ -460,17 +466,17 @@ def render_inside(out):
     pill(img, SIZE // 2, 120, "EVERYTHING INSIDE", font=fs(38), pad_x=54, pad_y=22)
     tc(d, (SIZE // 2, 238), "14 Connected Tabs", fserif(58), WHITE)
     gold_divider(img, SIZE // 2, 308, width=520)
-    tc(d, (SIZE // 2, 352), "Not a price list — a complete cost-the-head, quote-with-confidence system",
+    tc(d, (SIZE // 2, 352), "Not a menu — a complete beat-the-apps, know-your-real-margin system",
        fs(24, bold=False), (226, 214, 190))
     cards = [
-        ("Start Here", "how it all works"), ("Dashboard", "revenue, food cost & score"),
-        ("Plate Costing", "cost a plate by the head"), ("Menu Packages", "margin per head"),
-        ("Event Quotes", "quote = full event P&L"), ("Staffing", "your crew rate card"),
-        ("Rentals", "tables, chairs & serviceware"), ("Bookings", "every event on the books"),
-        ("Inventory", "par vs on hand"), ("Waste Log", "the quiet leaks"),
-        ("Ordering", "your standing order"), ("Cash & Deposits", "collected vs owed"),
-        ("Clients", "your book of business"), ("Settings", "set it once"),
-        ("+ 12 Printable Pages", "for every event"), ("Live Catering Score", "it all rolls up"),
+        ("Start Here", "how it all works"), ("Dashboard", "revenue, commission & score"),
+        ("Item Margin", "true net after the app"), ("Menu & Margins", "net margin per item"),
+        ("Platform P&L", "what each app pays you"), ("Virtual Brands", "many brands, one kitchen"),
+        ("Packaging", "the box is a real cost"), ("Order Volume", "when the rush hits"),
+        ("Inventory", "par vs on hand"), ("Waste Log", "the delivery-only leaks"),
+        ("Ordering", "your standing order"), ("Payouts", "what lands in your bank"),
+        ("Promotions", "only pay for what works"), ("Settings", "set it once"),
+        ("+ 12 Printable Pages", "for the line"), ("Live Kitchen Score", "it all rolls up"),
     ]
     cols = 4
     margin = 88
@@ -501,9 +507,9 @@ def render_menu(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     premium_bg(img, band_h=360)
     d = ImageDraw.Draw(img)
-    pill(img, SIZE // 2, 116, "PRICE THE HEAD", font=fs(30), pad_x=48, pad_y=22)
-    tc(d, (SIZE // 2, 232), "Margin on Every Package", fserif(44), WHITE)
-    tc(d, (SIZE // 2, 300), "Cost per head & price per head side by side — with each package's margin and food-cost %",
+    pill(img, SIZE // 2, 116, "KNOW YOUR REAL MARGIN", font=fs(30), pad_x=48, pad_y=22)
+    tc(d, (SIZE // 2, 232), "Net Margin on Every Item", fserif(44), WHITE)
+    tc(d, (SIZE // 2, 300), "App price, food & packaging — with the true NET margin after the app's 25% commission",
        fs(22, bold=False), (226, 214, 190))
     app_window(img, (70, 400, SIZE - 70, SIZE - 70), 2, content_menu)
     img.convert("RGB").save(out, "PNG", optimize=True)
@@ -513,9 +519,9 @@ def render_variance(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     premium_bg(img, band_h=360)
     d = ImageDraw.Draw(img)
-    pill(img, SIZE // 2, 116, "QUOTE WITH CONFIDENCE", font=fs(30), pad_x=48, pad_y=22)
-    tc(d, (SIZE // 2, 232), "Every Quote Is a Full P&L", fserif(44), WHITE)
-    tc(d, (SIZE // 2, 300), "Guests × package, plus service, staff & rentals — the profit on the booking before you say yes",
+    pill(img, SIZE // 2, 116, "SEE WHAT EACH APP PAYS", font=fs(30), pad_x=48, pad_y=22)
+    tc(d, (SIZE // 2, 232), "A Full P&L Per Platform", fserif(44), WHITE)
+    tc(d, (SIZE // 2, 300), "Orders, gross, the commission each app keeps, and the net that actually lands in your bank",
        fs(22, bold=False), (226, 214, 190))
     app_window(img, (70, 400, SIZE - 70, SIZE - 70), 3, content_pnl)
     img.convert("RGB").save(out, "PNG", optimize=True)
@@ -525,9 +531,9 @@ def render_engine(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     premium_bg(img, band_h=300)
     d = ImageDraw.Draw(img)
-    pill(img, SIZE // 2, 110, "COST IT · PRICE IT", font=fs(32), pad_x=52, pad_y=22)
-    tc(d, (SIZE // 2, 224), "The Plate-Costing Engine", fserif(44), WHITE)
-    app_window(img, (60, 330, SIZE - 60, 1150), 1, content_plate)
+    pill(img, SIZE // 2, 110, "THE APP TAKES ITS CUT FIRST", font=fs(32), pad_x=52, pad_y=22)
+    tc(d, (SIZE // 2, 224), "The Item-Margin Engine", fserif(44), WHITE)
+    app_window(img, (60, 330, SIZE - 60, 1150), 1, content_itemmargin)
     app_window(img, (60, 1180, SIZE - 60, SIZE - 60), 2, content_menu)
     img.convert("RGB").save(out, "PNG", optimize=True)
 
@@ -536,15 +542,15 @@ def render_printables(out):
     img = Image.new("RGBA", (SIZE, SIZE), BG + (255,))
     premium_bg(img, band_h=470)
     d = ImageDraw.Draw(img)
-    cloche_crest(img, SIZE // 2, 110, r=48)
+    ghost_crest(img, SIZE // 2, 110, r=48)
     pill(img, SIZE // 2, 214, "PLUS 12 PRINTABLE PAGES", font=fs(30), pad_x=48, pad_y=20)
-    tc(d, (SIZE // 2, 300), "Print, Fill & Keep — For Every Event", fserif(44), WHITE)
+    tc(d, (SIZE // 2, 300), "Print, Fill & Keep — For the Line", fserif(44), WHITE)
     gold_divider(img, SIZE // 2, 362, width=480)
-    tc(d, (SIZE // 2, 404), "A matching print-ready pack — plate cost card, quote sheet, run sheet & staffing sheet",
+    tc(d, (SIZE // 2, 404), "A matching print-ready pack — item-margin card, platform P&L, packaging & prep list",
        fs(21, bold=False), (226, 214, 190))
-    labels = ["Plate Cost Card", "Package Price List", "Event Quote", "Event Run Sheet",
-              "Staffing Sheet", "Rentals", "Bookings", "Inventory & Par",
-              "Waste Log", "Ordering Sheet", "Cash & Deposits", "Client Sheet"]
+    labels = ["Item Margin Card", "Menu & Margins", "Platform P&L", "Virtual Brands",
+              "Packaging Sheet", "Order Volume", "Prep List", "Inventory & Par",
+              "Waste Log", "Ordering Sheet", "Payouts", "Promotions"]
     print_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "marketing", "print")
     cols, rows_n = 4, 3
     margin = 96; gapx, gapy = 34, 66
@@ -578,7 +584,7 @@ def main():
         ("01_hero.png", render_hero),
         ("02_inside.png", render_inside),
         ("03_menu.png", render_menu),
-        ("04_quote.png", render_variance),
+        ("04_platform.png", render_variance),
         ("05_engine.png", render_engine),
         ("06_printables.png", render_printables),
     ]
