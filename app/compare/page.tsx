@@ -23,7 +23,7 @@ const competitors = [
   { id: 'spreadsheet', name: 'Spreadsheets + Email', highlight: false, price: '$0', note: 'Your time isn\'t free' },
   { id: 'buildium', name: 'Buildium', highlight: false, price: 'from $55/mo', note: 'Full PM suite — charged per unit' },
   { id: 'appfolio', name: 'AppFolio', highlight: false, price: '$1.40–$3/unit/mo', note: '$280/mo minimum' },
-  { id: 'propertymeld', name: 'PropertyMeld', highlight: false, price: 'from $160/mo', note: 'Maintenance-only, no AI' },
+  { id: 'propertymeld', name: 'PropertyMeld', highlight: false, price: 'from $160/mo', note: 'AI triage is a paid add-on' },
 ]
 
 type Mark = 'yes' | 'no' | 'partial'
@@ -72,19 +72,19 @@ const rows: Row[] = [
     category: 'AI & Automation',
     feature: 'AI trade classification',
     detail: 'Automatically identifies plumbing, electrical, HVAC, etc.',
-    values: { maintena: 'yes', spreadsheet: 'no', buildium: 'no', appfolio: 'no', propertymeld: 'no' },
+    values: { maintena: 'yes', spreadsheet: 'no', buildium: 'no', appfolio: 'no', propertymeld: 'partial' },
   },
   {
     category: 'AI & Automation',
     feature: 'AI urgency scoring',
     detail: 'Flags emergencies and high-risk issues instantly',
-    values: { maintena: 'yes', spreadsheet: 'no', buildium: 'no', appfolio: 'no', propertymeld: 'no' },
+    values: { maintena: 'yes', spreadsheet: 'no', buildium: 'no', appfolio: 'no', propertymeld: 'partial' },
   },
   {
     category: 'AI & Automation',
     feature: 'AI-written ticket summaries',
     detail: 'Plain-English summary auto-generated from raw tenant text',
-    values: { maintena: 'yes', spreadsheet: 'no', buildium: 'no', appfolio: 'no', propertymeld: 'no' },
+    values: { maintena: 'yes', spreadsheet: 'no', buildium: 'no', appfolio: 'no', propertymeld: 'partial' },
   },
   {
     category: 'AI & Automation',
@@ -389,7 +389,7 @@ export default function ComparePage() {
               Why AI triage changes everything
             </h2>
             <p className="text-gray-500 text-sm text-center mb-10 max-w-xl mx-auto">
-              No competitor offers AI-powered triage. Here's what that means in practice for a 50-unit portfolio.
+              Property Meld now sells AI triage as an add-on — an extra $1.50/unit/month on top of its platform fee. Maintena includes AI triage at one flat price. Here's what that means in practice for a 50-unit portfolio.
             </p>
             <div className="grid sm:grid-cols-3 gap-6">
               {[

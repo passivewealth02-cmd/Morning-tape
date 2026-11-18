@@ -507,6 +507,50 @@ export default function Home() {
               ))}
             </div>
 
+            <div className="max-w-4xl mx-auto mt-14">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 text-center mb-2">
+                What you'd actually pay at your size
+              </h3>
+              <p className="text-sm text-gray-500 text-center mb-6 max-w-xl mx-auto">
+                Maintena is flat — the price doesn't move when you add doors. Per-unit tools charge you more every time you grow.
+              </p>
+              <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-left">
+                      <th className="px-5 py-3 font-semibold text-gray-900">Portfolio</th>
+                      <th className="px-5 py-3 font-semibold text-indigo-600">Maintena</th>
+                      <th className="px-5 py-3 font-semibold text-gray-900">Property Meld*</th>
+                      <th className="px-5 py-3 font-semibold text-gray-900">AppFolio Core</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-600">
+                    <tr className="border-b border-gray-50">
+                      <td className="px-5 py-3 font-medium text-gray-900">50 doors</td>
+                      <td className="px-5 py-3 font-semibold text-indigo-600">$99/mo <span className="font-normal text-gray-400">(Starter)</span></td>
+                      <td className="px-5 py-3">$200/mo minimum</td>
+                      <td className="px-5 py-3">~$298/mo minimum spend</td>
+                    </tr>
+                    <tr className="border-b border-gray-50">
+                      <td className="px-5 py-3 font-medium text-gray-900">100 doors</td>
+                      <td className="px-5 py-3 font-semibold text-indigo-600">$299/mo <span className="font-normal text-gray-400">(Growth)</span></td>
+                      <td className="px-5 py-3">$200/mo + your PM suite</td>
+                      <td className="px-5 py-3">~$298/mo</td>
+                    </tr>
+                    <tr>
+                      <td className="px-5 py-3 font-medium text-gray-900">250 doors</td>
+                      <td className="px-5 py-3 font-semibold text-indigo-600">$599/mo <span className="font-normal text-gray-400">(Pro)</span></td>
+                      <td className="px-5 py-3">$500/mo + your PM suite</td>
+                      <td className="px-5 py-3">~$373/mo</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray-400 mt-3 text-center">
+                *Property Meld covers maintenance only and requires a separate property management suite. Competitor figures from public pricing pages, November 2026.
+              </p>
+            </div>
+
             <p className="text-center mt-8 text-sm text-gray-500">
               Not sure which plan?{' '}
               <Link href="/compare" className="text-indigo-600 hover:text-indigo-700 font-medium">
