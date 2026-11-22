@@ -1,6 +1,7 @@
 import 'server-only'
-import { sql, type MaintenanceTicket, type Vendor, type TicketUrgency } from './db'
+import { sql, type MaintenanceTicket, type Organization, type Vendor, type TicketUrgency } from './db'
 import { analyzeMaintenanceTicket, recommendVendors } from './anthropic'
+import { getEffectivePlan, PLAN_LIMITS } from './plans'
 import { sendVendorAssignmentEmail, sendTenantVendorAssignedEmail } from './email'
 import { logActivity } from './auth'
 
@@ -80,36 +81,57 @@ export async function createTicketWithAI(input: CreateTicketInput): Promise<Main
 
 // Runs AI classification and auto-dispatch on an existing ticket. Used on
 // creation and when a saved draft is submitted.
+// Plan gates: AI triage (classification, urgency, summary, escalation) runs on
+// every plan including Starter; automatic vendor dispatch is Growth and up —
+// Starter customers assign vendors manually.
 export async function triageAndDispatch(ticket: MaintenanceTicket): Promise<MaintenanceTicket> {
   const { title, description } = ticket
-  let analysisOk = false
+
+  let aiTriage = true
+  let aiDispatch = true
   try {
-    const analysis = await analyzeMaintenanceTicket(title, description)
-    // Re-derive the SLA window from the AI-determined urgency, anchored to creation time
-    const slaDue = slaDueDate(analysis.urgency, new Date(ticket.created_at).getTime())
-    await sql`
-      UPDATE maintenance_tickets
-      SET
-        ai_category = ${analysis.category},
-        ai_vendor_type = ${analysis.vendor_type},
-        ai_summary = ${analysis.summary},
-        ai_escalation_risk = ${analysis.escalation_risk},
-        urgency = ${analysis.urgency},
-        sla_due_at = ${slaDue}
-      WHERE id = ${ticket.id}
-    `
-    ticket.ai_category = analysis.category
-    ticket.ai_vendor_type = analysis.vendor_type
-    ticket.ai_summary = analysis.summary
-    ticket.ai_escalation_risk = analysis.escalation_risk
-    ticket.urgency = analysis.urgency
-    ticket.sla_due_at = slaDue
-    analysisOk = true
-  } catch (aiError) {
-    console.error('AI analysis failed:', aiError)
+    const orgRows = (await sql`
+      SELECT * FROM organizations WHERE id = ${ticket.organization_id}
+    `) as unknown as Organization[]
+    if (orgRows[0]) {
+      const limits = PLAN_LIMITS[getEffectivePlan(orgRows[0])]
+      aiTriage = limits.ai_triage
+      aiDispatch = limits.ai_dispatch
+    }
+  } catch (planError) {
+    console.error('Plan lookup failed:', planError)
   }
 
-  if (analysisOk && ticket.ai_vendor_type) {
+  let analysisOk = false
+  if (aiTriage) {
+    try {
+      const analysis = await analyzeMaintenanceTicket(title, description)
+      // Re-derive the SLA window from the AI-determined urgency, anchored to creation time
+      const slaDue = slaDueDate(analysis.urgency, new Date(ticket.created_at).getTime())
+      await sql`
+        UPDATE maintenance_tickets
+        SET
+          ai_category = ${analysis.category},
+          ai_vendor_type = ${analysis.vendor_type},
+          ai_summary = ${analysis.summary},
+          ai_escalation_risk = ${analysis.escalation_risk},
+          urgency = ${analysis.urgency},
+          sla_due_at = ${slaDue}
+        WHERE id = ${ticket.id}
+      `
+      ticket.ai_category = analysis.category
+      ticket.ai_vendor_type = analysis.vendor_type
+      ticket.ai_summary = analysis.summary
+      ticket.ai_escalation_risk = analysis.escalation_risk
+      ticket.urgency = analysis.urgency
+      ticket.sla_due_at = slaDue
+      analysisOk = true
+    } catch (aiError) {
+      console.error('AI analysis failed:', aiError)
+    }
+  }
+
+  if (analysisOk && aiDispatch && ticket.ai_vendor_type) {
     try {
       await autoAssignVendor(ticket)
     } catch (assignError) {

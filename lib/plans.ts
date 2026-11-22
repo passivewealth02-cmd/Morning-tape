@@ -9,6 +9,7 @@ type Limits = {
   tickets_per_month: number // -1 = unlimited
   properties: number
   vendors: number
+  ai_triage: boolean
   ai_dispatch: boolean
   sla_tracking: boolean
   white_label: boolean
@@ -20,6 +21,7 @@ export const PLAN_LIMITS: Record<OrganizationPlan, Limits> = {
     tickets_per_month: -1,
     properties: 10,
     vendors: -1,
+    ai_triage: true,
     ai_dispatch: true,
     sla_tracking: true,
     white_label: false,
@@ -29,6 +31,9 @@ export const PLAN_LIMITS: Record<OrganizationPlan, Limits> = {
     tickets_per_month: 100,
     properties: 1,
     vendors: 5,
+    // AI triage (classification, urgency, summary) is included on Starter so
+    // the $99 plan demos the magic; automatic vendor dispatch stays Growth+.
+    ai_triage: true,
     ai_dispatch: false,
     sla_tracking: false,
     white_label: false,
@@ -38,6 +43,7 @@ export const PLAN_LIMITS: Record<OrganizationPlan, Limits> = {
     tickets_per_month: -1,
     properties: 10,
     vendors: -1,
+    ai_triage: true,
     ai_dispatch: true,
     sla_tracking: true,
     white_label: false,
@@ -47,6 +53,7 @@ export const PLAN_LIMITS: Record<OrganizationPlan, Limits> = {
     tickets_per_month: -1,
     properties: -1,
     vendors: -1,
+    ai_triage: true,
     ai_dispatch: true,
     sla_tracking: true,
     white_label: true,

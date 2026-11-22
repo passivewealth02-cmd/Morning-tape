@@ -13,7 +13,7 @@ const PLANS: { id: Plan; name: string; price: string; description: string; featu
     name: 'Starter',
     price: '$99/mo',
     description: 'Small portfolios',
-    features: ['100 tickets/month', '1 property', '5 vendors', 'Email notifications'],
+    features: ['100 tickets/month', '1 property', '5 vendors', 'AI triage & summaries', 'Email notifications'],
   },
   {
     id: 'growth',

@@ -22,7 +22,7 @@ const PLANS: Plan[] = [
     price: '$99',
     period: '/mo',
     description: 'Small portfolios',
-    features: ['100 tickets/mo', '1 property', '5 vendors', 'Email notifications'],
+    features: ['100 tickets/mo', '1 property', '5 vendors', 'AI triage & summaries', 'Email notifications'],
   },
   {
     id: 'growth',
